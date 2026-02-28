@@ -1,0 +1,98 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import Sidebar from './components/layout/Sidebar';
+import Topbar from './components/layout/Topbar';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Participants from './pages/Participants';
+import ParticipantDetail from './pages/ParticipantDetail';
+import Volunteers from './pages/Volunteers';
+import VolunteerDetail from './pages/VolunteerDetail';
+import Sponsors from './pages/Sponsors';
+import SponsorDetail from './pages/SponsorDetail';
+import Partners from './pages/Partners';
+import PartnerDetail from './pages/PartnerDetail';
+import Events from './pages/Events';
+import CreateEvent from './pages/CreateEvent';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
+import Donations from './pages/Donations';
+import DonationDetail from './pages/DonationDetail';
+import authService from './services/authService';
+
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = authService.isAuthenticated();
+  const user = authService.getCurrentUser();
+  const location = useLocation();
+
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+const AppContent = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isLoginPage = location.pathname === '/login';
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  useEffect(() => {
+    const isAuthenticated = authService.isAuthenticated();
+    const user = authService.getCurrentUser();
+    
+    if (isLoginPage && isAuthenticated && user?.role === 'admin') {
+      navigate('/');
+    }
+  }, [isLoginPage, navigate]);
+
+  if (isLoginPage) {
+    return <Login />;
+  }
+
+  return (
+    <ProtectedRoute>
+      <div className="flex min-h-screen bg-main-bg overflow-x-hidden">
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        
+        <div className="flex-1 flex flex-col min-w-0 pb-16 relative">
+          <Topbar onMenuClick={toggleSidebar} />
+          
+          <main className="p-4 md:p-6 lg:p-10 flex-1 overflow-x-hidden relative h-full">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/participants" element={<Participants />} />
+              <Route path="/participants/:id" element={<ParticipantDetail />} />
+              <Route path="/volunteers" element={<Volunteers />} />
+              <Route path="/volunteers/:id" element={<VolunteerDetail />} />
+              <Route path="/sponsors" element={<Sponsors />} />
+              <Route path="/sponsors/:id" element={<SponsorDetail />} />
+              <Route path="/partners" element={<Partners />} />
+              <Route path="/partners/:id" element={<PartnerDetail />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/new" element={<CreateEvent />} />
+              <Route path="/events/:id" element={<CreateEvent />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/donations" element={<Donations />} />
+              <Route path="/donations/:id" element={<DonationDetail />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
+    </ProtectedRoute>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
+
+export default App;
