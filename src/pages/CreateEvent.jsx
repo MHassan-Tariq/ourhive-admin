@@ -103,7 +103,8 @@ const CreateEvent = () => {
       }
       navigate('/events');
     } catch (err) {
-      alert('Failed to save event.');
+      const message = err.response?.data?.message || err.message || 'Failed to save event.';
+      alert(message);
       console.error(err);
     } finally {
       setIsSubmitting(false);

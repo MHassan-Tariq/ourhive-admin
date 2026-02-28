@@ -103,16 +103,12 @@ const adminService = {
   },
 
   createEvent: async (data) => {
-    const response = await api.post('/admin/events', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.post('/admin/events', data);
     return response.data;
   },
 
   updateEvent: async (id, data) => {
-    const response = await api.patch(`/admin/events/${id}`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.patch(`/admin/events/${id}`, data);
     return response.data;
   },
 
