@@ -7,7 +7,8 @@ import {
   Loader2,
   AlertCircle,
   PlusCircle,
-  MapPin
+  MapPin,
+  Pencil
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -188,13 +189,22 @@ const Events = () => {
                     {getStatusIndicator(event.status)}
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <button 
-                      onClick={() => navigate(`/events/${event._id}`)} 
-                      className="text-[#A0AEC0] hover:text-[#4A5568] transition-colors p-2"
-                      title="View Details"
-                    >
-                      <Eye size={18} />
-                    </button>
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => navigate(`/events/${event._id}`)} 
+                        className="text-[#A0AEC0] hover:text-[#4A5568] transition-colors p-2"
+                        title="View Details"
+                      >
+                        <Eye size={18} />
+                      </button>
+                      <button 
+                        onClick={() => navigate(`/events/${event._id}`)} 
+                        className="text-[#A16D36] hover:text-[#8C5D2B] transition-colors p-2"
+                        title="Edit Event"
+                      >
+                        <Pencil size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
