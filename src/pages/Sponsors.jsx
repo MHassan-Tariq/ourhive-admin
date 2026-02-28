@@ -6,7 +6,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Pencil,
+  Trash2,
+  X,
+  Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -21,6 +26,9 @@ const Sponsors = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [editingSponsor, setEditingSponsor] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(null); // ID of sponsor being deleted
 
   // Mock data to ensure the UI works flawlessly even if the backend endpoint is missing, matching the screenshot
   const mockSponsors = [
@@ -152,6 +160,46 @@ const Sponsors = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this sponsor?')) return;
+    
+    setIsDeleting(id);
+    try {
+      await adminService.deleteSponsor(id);
+      setSponsors(prev => prev.filter(s => s._id !== id));
+      setTotalCount(prev => prev - 1);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete sponsor.');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const { _id, organizationName, tier, status } = editingSponsor;
+      await adminService.updateSponsor(_id, { 
+        organizationName, 
+        tier, 
+        status 
+      });
+      
+      setSponsors(prev => prev.map(s => 
+        s._id === _id ? { ...s, name: organizationName, organizationName, tier, status } : s
+      ));
+      setEditingSponsor(null);
+      alert('Sponsor updated successfully');
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to update sponsor');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="animate-in fade-in duration-500 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-8">
@@ -237,12 +285,30 @@ const Sponsors = () => {
                       {getStatusIndicator(sponsor.status)}
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <button 
-                        onClick={() => navigate(`/sponsors/${sponsor._id}`)} 
-                        className="text-amber-700 text-sm font-bold hover:text-amber-800 transition-colors"
-                      >
-                        View Details
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => navigate(`/sponsors/${sponsor._id}`)} 
+                          className="p-2 text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button 
+                          onClick={() => setEditingSponsor({ ...sponsor, organizationName: sponsor.organizationName || sponsor.name })} 
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit Sponsor"
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(sponsor._id)} 
+                          disabled={isDeleting === sponsor._id}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete Sponsor"
+                        >
+                          {isDeleting === sponsor._id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -324,6 +390,81 @@ const Sponsors = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Sponsor Modal */}
+      {editingSponsor && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-black/5 overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-black/5 flex items-center justify-between bg-[#FAF8F5]">
+              <h3 className="text-xl font-bold text-gray-900">Edit Sponsor</h3>
+              <button 
+                onClick={() => setEditingSponsor(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-black/5 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdate} className="p-8 space-y-6">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Organization Name</label>
+                <input 
+                  type="text"
+                  required
+                  value={editingSponsor.organizationName}
+                  onChange={(e) => setEditingSponsor({ ...editingSponsor, organizationName: e.target.value })}
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-black/5 rounded-2xl text-[15px] focus:ring-2 focus:ring-amber-700/20 focus:border-amber-700 outline-none transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Tier</label>
+                  <select 
+                    value={editingSponsor.tier}
+                    onChange={(e) => setEditingSponsor({ ...editingSponsor, tier: e.target.value })}
+                    className="w-full px-5 py-3.5 bg-gray-50 border border-black/5 rounded-2xl text-[15px] focus:ring-2 focus:ring-amber-700/20 focus:border-amber-700 outline-none transition-all appearance-none"
+                  >
+                    <option value="Supporter">Supporter</option>
+                    <option value="Bronze">Bronze</option>
+                    <option value="Silver">Silver</option>
+                    <option value="Gold">Gold</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Status</label>
+                  <select 
+                    value={editingSponsor.status}
+                    onChange={(e) => setEditingSponsor({ ...editingSponsor, status: e.target.value })}
+                    className="w-full px-5 py-3.5 bg-gray-50 border border-black/5 rounded-2xl text-[15px] focus:ring-2 focus:ring-amber-700/20 focus:border-amber-700 outline-none transition-all appearance-none"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setEditingSponsor(null)}
+                  className="flex-1 px-6 py-3.5 border border-black/5 text-gray-600 rounded-2xl text-[15px] font-bold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex-1 px-6 py-3.5 bg-amber-700 text-white rounded-2xl text-[15px] font-bold shadow-lg shadow-amber-700/20 hover:bg-amber-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

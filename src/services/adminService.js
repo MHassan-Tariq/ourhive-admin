@@ -75,6 +75,11 @@ const adminService = {
     return response.data;
   },
 
+  deleteSponsor: async (id) => {
+    const response = await api.delete(`/admin/sponsors/${id}`);
+    return response.data;
+  },
+
   // Community Partners
   getPartners: async (params = {}) => {
     const response = await api.get('/admin/community-partners', { params });
