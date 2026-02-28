@@ -76,9 +76,20 @@ const CreateEvent = () => {
     
     try {
       const data = new FormData();
-      Object.keys(formData).forEach(key => {
-        data.append(key, formData[key]);
+      
+      // Only send fields that are editable and not objects
+      const editableFields = [
+        'title', 'description', 'location', 'date', 'time', 
+        'endTime', 'category', 'requiredVolunteers', 'type', 'status',
+        'impactStatement', 'physicalRequirements', 'dressCode', 'orientation'
+      ];
+
+      editableFields.forEach(key => {
+        if (formData[key] !== undefined && formData[key] !== null) {
+          data.append(key, formData[key]);
+        }
       });
+
       if (file) {
         data.append('flyer', file);
       }
