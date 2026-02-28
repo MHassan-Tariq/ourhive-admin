@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Check, Loader2, AlertCircle } from 'lucide-react';
+import { User, Shield, Check, Loader2, AlertCircle, Camera } from 'lucide-react';
 import authService from '../services/authService';
 import adminService from '../services/adminService';
 
@@ -16,6 +16,10 @@ const Profile = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [currentPhoto, setCurrentPhoto] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingPersonal, setIsSavingPersonal] = useState(false);
@@ -35,6 +39,7 @@ const Profile = () => {
             email: user.email || '',
             phone: user.phone || ''
           });
+          setCurrentPhoto(user.profilePictureUrl || null);
         }
       } catch (err) {
         console.warn("Failed to fetch admin profile, using auth service data:", err);
@@ -51,20 +56,54 @@ const Profile = () => {
     };
     fetchProfile();
   }, []);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   
   const handlePersonalSave = async (e) => {
     e.preventDefault();
     setIsSavingPersonal(true);
     try {
-      await adminService.updateAdminProfile({
-        firstName: personalForm.firstName,
-        lastName: personalForm.lastName,
-        phone: personalForm.phone
-      });
+      const formData = new FormData();
+      formData.append('firstName', personalForm.firstName);
+      formData.append('lastName', personalForm.lastName);
+      formData.append('phone', personalForm.phone);
+      
+      if (imageFile) {
+        formData.append('profilePicture', imageFile);
+      }
+
+      const response = await adminService.updateAdminProfile(formData);
+      
+      // Update local storage so Topbar reflects changes
+      const updatedUser = response.data || response;
+      if (updatedUser) {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setCurrentPhoto(updatedUser.profilePictureUrl);
+        setImageFile(null);
+        setImagePreview(null);
+        
+        // Dispatch event for Topbar to react if needed (though it reads on render)
+        window.dispatchEvent(new Event('storage'));
+      }
+      
       alert("Profile settings saved successfully");
+      // Optional: force reload if Topbar doesn't update
+      // window.location.reload(); 
     } catch (err) {
       console.error(err);
-      alert("Failed to save profile settings");
+      const errorData = err.response?.data;
+      const msg = errorData?.message || err.message || "Failed to save profile settings";
+      alert(`Error: ${msg}${errorData?.error ? `\nDetails: ${errorData.error}` : ''}`);
     } finally {
       setIsSavingPersonal(false);
     }
@@ -116,6 +155,49 @@ const Profile = () => {
            <div className="flex items-center gap-3 mb-6">
               <User size={20} className="text-[#A16D36]" />
               <h2 className="text-[20px] font-bold text-[#2D3748]">Personal Information</h2>
+           </div>
+           
+           {/* Profile Photo Section */}
+           <div className="mb-8 flex flex-col items-center sm:flex-row sm:items-center gap-6 pb-6 border-b border-gray-100">
+              <div className="relative group">
+                 <div className="w-24 h-24 rounded-full overflow-hidden bg-pink-100 flex items-center justify-center border-4 border-white shadow-sm">
+                    {imagePreview || currentPhoto ? (
+                       <img 
+                         src={imagePreview || currentPhoto} 
+                         alt="Profile" 
+                         className="w-full h-full object-cover" 
+                       />
+                    ) : (
+                       <span className="text-2xl font-bold text-pink-600">
+                          {personalForm.firstName?.[0]}{personalForm.lastName?.[0]}
+                       </span>
+                    )}
+                 </div>
+                 <label className="absolute bottom-0 right-0 p-2 bg-[#A16D36] text-white rounded-full cursor-pointer shadow-lg transform transition-transform hover:scale-110">
+                    <Camera size={16} />
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                 </label>
+              </div>
+              <div>
+                 <h3 className="text-[16px] font-bold text-[#2D3748]">Profile Picture</h3>
+                 <p className="text-[14px] text-[#718096] mt-1">
+                    PNG, JPG or GIF. Max size of 2MB.
+                 </p>
+                 {imageFile && (
+                    <button 
+                      type="button"
+                      onClick={() => { setImageFile(null); setImagePreview(null); }}
+                      className="text-[12px] text-rose-500 font-bold mt-2 hover:underline"
+                    >
+                       Remove selection
+                    </button>
+                 )}
+              </div>
            </div>
            
            <form onSubmit={handlePersonalSave} className="space-y-6">

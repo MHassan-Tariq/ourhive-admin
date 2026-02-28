@@ -55,13 +55,13 @@ const AppContent = () => {
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-main-bg overflow-x-hidden">
+      <div className="flex h-screen bg-main-bg overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
-        <div className="flex-1 flex flex-col min-w-0 pb-16 relative">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Topbar onMenuClick={toggleSidebar} />
           
-          <main className="p-4 md:p-6 lg:p-10 flex-1 overflow-x-hidden relative h-full">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/participants" element={<Participants />} />

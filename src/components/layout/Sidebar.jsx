@@ -46,7 +46,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const sidebarClasses = `
     fixed inset-y-0 left-0 z-50 w-64 bg-sidebar-bg border-r border-black/5 transform transition-transform duration-300 ease-in-out
-    lg:translate-x-0 lg:static lg:inset-0 flex flex-col
+    lg:translate-x-0 lg:relative lg:h-full flex flex-col
     ${isOpen ? 'translate-x-0' : '-translate-x-full'}
   `;
 
@@ -75,20 +75,6 @@ const Sidebar = ({ isOpen, onClose }) => {
             <X size={20} />
           </button>
         </div>
-
-        {user && (
-          <div className="px-6 mb-8 flex items-center">
-            <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent ring-2 ring-accent/10 mr-3 shrink-0">
-              <UserCog size={20} />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-bold text-gray-800 truncate">
-                {user.name || (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Admin User')}
-              </h3>
-              <p className="text-[10px] text-gray-400 truncate">{user.email || 'admin@ourhive.com'}</p>
-            </div>
-          </div>
-        )}
 
         <nav className="flex-1 overflow-y-auto px-3">
           {menuGroups.map((group, idx) => (

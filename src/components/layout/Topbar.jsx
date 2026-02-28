@@ -9,7 +9,7 @@ const Topbar = ({ onMenuClick }) => {
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
 
   return (
-    <header className="flex items-center justify-between px-6 lg:px-10 h-16 bg-transparent">
+    <header className="flex items-center justify-between px-6 lg:px-10 h-16 bg-sidebar-bg border-b border-black/5">
       <div className="flex items-center gap-4">
         <button 
           onClick={onMenuClick}
@@ -32,8 +32,20 @@ const Topbar = ({ onMenuClick }) => {
         to="/profile" 
         className="flex items-center p-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer"
       >
-        <div className="w-9 h-9 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-semibold text-sm mr-3">
-          {initials}
+        <div className="w-9 h-9 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-semibold text-sm mr-3 overflow-hidden">
+          {user?.profilePictureUrl ? (
+            <img 
+              src={user.profilePictureUrl} 
+              alt={name} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerText = initials;
+              }}
+            />
+          ) : (
+            initials
+          )}
         </div>
         <span className="hidden sm:inline text-sm font-semibold text-[#333] pr-2">{name}</span>
       </Link>
