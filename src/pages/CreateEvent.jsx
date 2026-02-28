@@ -20,8 +20,12 @@ const CreateEvent = () => {
     description: '',
     location: '',
     date: '',
-    time: ''
+    time: '',
+    status: 'Pending'
   });
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = React.useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -37,8 +41,12 @@ const CreateEvent = () => {
               description: res.data.description || '',
               location: res.data.location || '',
               date: res.data.date ? new Date(res.data.date).toISOString().split('T')[0] : '',
-              time: res.data.time || ''
+              time: res.data.time || '',
+              status: res.data.status || 'Pending'
             });
+            if (res.data.flyerUrl) {
+              setPreviewUrl(res.data.flyerUrl);
+            }
           }
         } catch (err) {
           console.error("Failed to fetch event detail:", err);
@@ -50,15 +58,36 @@ const CreateEvent = () => {
     }
   }, [id]);
 
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e?.preventDefault();
     setIsSubmitting(true);
+    
     try {
+      const data = new FormData();
+      Object.keys(formData).forEach(key => {
+        data.append(key, formData[key]);
+      });
+      if (file) {
+        data.append('flyer', file);
+      }
+
       if (id && id !== 'new') {
-        await adminService.updateEvent(id, formData);
+        await adminService.updateEvent(id, data);
         alert('Event updated successfully!');
       } else {
-        await adminService.createEvent(formData);
+        await adminService.createEvent(data);
         alert('Event created successfully!');
       }
       navigate('/events');
@@ -201,18 +230,36 @@ const CreateEvent = () => {
                  <h2 className="text-[18px] font-bold text-[#2D3748]">Event Flyer</h2>
               </div>
               
-              <div className="border-2 border-dashed border-pink-200 bg-pink-50/50 rounded-2xl flex flex-col items-center justify-center p-8 mb-4 hover:bg-pink-50 transition-colors cursor-pointer">
-                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-[#A16D36] mb-4">
-                    <CloudUpload size={24} />
-                 </div>
-                 <h3 className="text-[16px] font-bold text-[#2D3748] mb-1">Upload event image</h3>
-                 <p className="text-[12px] font-medium text-[#A0AEC0] uppercase tracking-wider">JPG, PNG OR GIF (MAX 5MB)</p>
-              </div>
-              
-              <div className="bg-[#F7FAFC] rounded-2xl border border-[#E2E8F0] h-32 flex flex-col items-center justify-center text-[#A0AEC0]">
-                 <ImageIcon size={24} className="mb-2 opacity-50" />
-                 <p className="text-[13px] font-medium">Preview will appear here</p>
-              </div>
+               <input 
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+               />
+               
+               <div 
+                 onClick={() => fileInputRef.current.click()}
+                 className="border-2 border-dashed border-pink-200 bg-pink-50/50 rounded-2xl flex flex-col items-center justify-center p-8 mb-4 hover:bg-pink-50 transition-colors cursor-pointer overflow-hidden"
+               >
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Preview" className="max-h-40 w-auto rounded-lg shadow-sm" />
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-[#A16D36] mb-4">
+                         <CloudUpload size={24} />
+                      </div>
+                      <h3 className="text-[16px] font-bold text-[#2D3748] mb-1">Upload event image</h3>
+                      <p className="text-[12px] font-medium text-[#A0AEC0] uppercase tracking-wider">JPG, PNG OR GIF (MAX 5MB)</p>
+                    </>
+                  )}
+               </div>
+               
+               <div className="bg-[#F7FAFC] rounded-2xl border border-[#E2E8F0] p-4 flex flex-col items-center justify-center text-[#A0AEC0]">
+                  <p className="text-[13px] font-medium">
+                    {file ? `File: ${file.name}` : (previewUrl ? 'Current image preview' : 'No image selected')}
+                  </p>
+               </div>
            </div>
            
            {/* Quick Select Date Calendar component mock */}

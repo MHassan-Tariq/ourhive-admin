@@ -22,45 +22,8 @@ const Events = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Mock data for visual completeness matching Screenshot 1
-  const mockEvents = [
-    { 
-      _id: '1', 
-      title: 'Tech Summit 2024', 
-      date: 'Oct 15, 2024',
-      time: '09:00 AM PST', 
-      location: 'San Francisco, CA', 
-      status: 'Confirmed',
-      color: 'bg-pink-400'
-    },
-    { 
-      _id: '2', 
-      title: 'Indie Music Festival', 
-      date: 'Nov 02, 2024',
-      time: '02:00 PM CST', 
-      location: 'Austin, TX', 
-      status: 'Pending',
-      color: 'bg-indigo-500'
-    },
-    { 
-      _id: '3', 
-      title: 'SaaS Product Launch', 
-      date: 'Dec 10, 2024',
-      time: '11:00 AM EST', 
-      location: 'New York, NY', 
-      status: 'Confirmed',
-      color: 'bg-emerald-500'
-    },
-    { 
-      _id: '4', 
-      title: 'Winter Charity Gala', 
-      date: 'Jan 20, 2025',
-      time: '06:00 PM CST', 
-      location: 'Chicago, IL', 
-      status: 'Draft',
-      color: 'bg-orange-400'
-    },
-  ];
+  // Initial mock data removed to focus on live data
+  const mockEvents = [];
 
   const fetchEvents = async () => {
     setIsLoading(true);
@@ -101,7 +64,7 @@ const Events = () => {
              data = { ...apiData, data: mappedData };
           }
         } catch (e) {
-          console.warn("API not available, using mock data for visual validation");
+          console.warn("API Error:", e);
         }
       }
       
@@ -199,7 +162,13 @@ const Events = () => {
                 <tr key={event._id || idx} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-full ${event.color} shrink-0 shadow-sm`}></div>
+                      {event.flyerUrl ? (
+                        <img src={event.flyerUrl} alt={event.title} className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                      ) : (
+                        <div className={`w-12 h-12 rounded-full ${event.color || 'bg-gray-200'} shrink-0 shadow-sm flex items-center justify-center text-white font-bold`}>
+                          {event.title.charAt(0)}
+                        </div>
+                      )}
                       <span className="text-[16px] font-bold text-[#2D3748]">{event.title}</span>
                     </div>
                   </td>
