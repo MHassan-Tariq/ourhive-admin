@@ -262,44 +262,46 @@ const CreateEvent = () => {
                </div>
            </div>
            
-           {/* Quick Select Date Calendar component mock */}
-           <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 pb-10">
-              <div className="flex flex-col mb-4">
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-[16px] font-bold text-[#2D3748]">Quick Select Date</h2>
-                    <div className="flex gap-2 text-[#A0AEC0]">
-                       <ChevronLeft size={16} className="cursor-pointer hover:text-[#4A5568]" />
-                       <ChevronRight size={16} className="cursor-pointer hover:text-[#4A5568]" />
-                    </div>
-                 </div>
-                 
-                 <div className="grid grid-cols-7 text-center mb-4">
-                    {['S','M','T','W','T','F','S'].map(d => (
-                       <span key={d} className="text-[12px] font-bold text-[#A0AEC0]">{d}</span>
-                    ))}
-                 </div>
-                 
-                 <div className="grid grid-cols-7 gap-y-4 text-center text-[14px]">
-                    <span className="text-[#CBD5E0]">29</span>
-                    <span className="text-[#CBD5E0]">30</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer">1</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer">2</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer">3</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer">4</span>
-                    <div className="flex justify-center">
-                       <span className="w-8 h-8 flex items-center justify-center bg-[#A16D36] text-white font-bold rounded-lg shadow-md shadow-amber-900/20">5</span>
-                    </div>
-                    
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer mt-2">6</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer mt-2">7</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer mt-2">8</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer mt-2">9</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer mt-2">10</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer mt-2">11</span>
-                    <span className="text-[#4A5568] font-medium hover:bg-gray-50 rounded-full cursor-pointer mt-2">12</span>
-                 </div>
-              </div>
-           </div>
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 pb-10">
+               <div className="flex flex-col mb-4">
+                  <div className="flex justify-between items-center mb-4">
+                     <h2 className="text-[16px] font-bold text-[#2D3748]">Quick Select Date</h2>
+                     <div className="flex gap-2 text-[#A0AEC0]">
+                        <ChevronLeft size={16} className="cursor-pointer hover:text-[#4A5568]" />
+                        <ChevronRight size={16} className="cursor-pointer hover:text-[#4A5568]" />
+                     </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-7 text-center mb-4">
+                     {['S','M','T','W','T','F','S'].map(d => (
+                        <span key={d} className="text-[12px] font-bold text-[#A0AEC0]">{d}</span>
+                     ))}
+                  </div>
+                  
+                  <div className="grid grid-cols-7 gap-y-4 text-center text-[14px]">
+                     {[29, 30, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((day, idx) => {
+                        const isMarch = idx >= 2;
+                        const dateStr = `2024-03-${day.toString().padStart(2, '0')}`;
+                        const isSelected = formData.date === dateStr;
+                        
+                        return (
+                           <div key={idx} className="flex justify-center">
+                              <span 
+                                 onClick={() => setFormData(prev => ({ ...prev, date: dateStr }))}
+                                 className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all ${
+                                    isSelected 
+                                    ? 'bg-[#A16D36] text-white font-bold shadow-md shadow-amber-900/20' 
+                                    : !isMarch ? 'text-[#CBD5E0]' : 'text-[#4A5568] font-medium hover:bg-gray-50'
+                                 }`}
+                              >
+                                 {day}
+                              </span>
+                           </div>
+                        );
+                     })}
+                  </div>
+               </div>
+            </div>
 
            {/* Actions */}
            <div className="flex justify-end gap-4 mt-8">
