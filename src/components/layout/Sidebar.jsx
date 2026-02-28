@@ -20,7 +20,7 @@ import {
   X
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, onClose, user }) => {
   const menuGroups = [
     {
       title: 'USER MANAGEMENT',
@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     }
   ];
 
-  const user = authService.getCurrentUser();
+  // Removed stale authService call, using prop from App.jsx
   const navigate = useNavigate();
 
   const handleLogout = async () => {

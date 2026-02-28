@@ -19,6 +19,7 @@ import Profile from './pages/Profile';
 import Donations from './pages/Donations';
 import DonationDetail from './pages/DonationDetail';
 import authService from './services/authService';
+import adminService from './services/adminService';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -34,20 +35,34 @@ const ProtectedRoute = ({ children }) => {
 
 const AppContent = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [user, setUser] = useState(authService.getCurrentUser());
   const location = useLocation();
   const navigate = useNavigate();
   const isLoginPage = location.pathname === '/login';
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
   useEffect(() => {
     const isAuthenticated = authService.isAuthenticated();
-    const user = authService.getCurrentUser();
     
     if (isLoginPage && isAuthenticated && user?.role === 'admin') {
       navigate('/');
     }
-  }, [isLoginPage, navigate]);
+
+    // Fetch latest profile data to keep state in sync
+    if (isAuthenticated && !isLoginPage) {
+      adminService.getAdminProfile()
+        .then(res => {
+          const userData = res.data || res;
+          if (userData) {
+            localStorage.setItem('user', JSON.stringify(userData));
+            setUser(userData);
+          }
+        })
+        .catch(err => {
+          console.warn("Failed to sync profile:", err);
+        });
+    }
+  }, [isLoginPage, navigate, !!user]); 
 
   if (isLoginPage) {
     return <Login />;
@@ -56,10 +71,17 @@ const AppContent = () => {
   return (
     <ProtectedRoute>
       <div className="flex h-screen bg-main-bg overflow-hidden">
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onClose={() => setIsSidebarOpen(false)} 
+          user={user}
+        />
         
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <Topbar onMenuClick={toggleSidebar} />
+          <Topbar 
+            onMenuClick={toggleSidebar} 
+            user={user}
+          />
           
           <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-10 relative">
             <Routes>
@@ -76,7 +98,7 @@ const AppContent = () => {
               <Route path="/events/new" element={<CreateEvent />} />
               <Route path="/events/:id" element={<CreateEvent />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile" element={<Profile onUpdate={setUser} />} />
               <Route path="/donations" element={<Donations />} />
               <Route path="/donations/:id" element={<DonationDetail />} />
             </Routes>

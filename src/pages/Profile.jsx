@@ -3,7 +3,7 @@ import { User, Shield, Check, Loader2, AlertCircle, Camera } from 'lucide-react'
 import authService from '../services/authService';
 import adminService from '../services/adminService';
 
-const Profile = () => {
+const Profile = ({ onUpdate }) => {
   const [personalForm, setPersonalForm] = useState({
     firstName: '',
     lastName: '',
@@ -92,8 +92,8 @@ const Profile = () => {
         setImageFile(null);
         setImagePreview(null);
         
-        // Dispatch event for Topbar to react if needed (though it reads on render)
-        window.dispatchEvent(new Event('storage'));
+        // Notify parent component to update Topbar/Sidebar
+        if (onUpdate) onUpdate(updatedUser);
       }
       
       alert("Profile settings saved successfully");

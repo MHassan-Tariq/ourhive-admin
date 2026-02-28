@@ -3,8 +3,7 @@ import { Search, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import authService from '../../services/authService';
 
-const Topbar = ({ onMenuClick }) => {
-  const user = authService.getCurrentUser();
+const Topbar = ({ onMenuClick, user }) => {
   const name = user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null) || 'Admin User';
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
 
