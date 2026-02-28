@@ -72,6 +72,12 @@ const CreateEvent = () => {
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
+
+    if (file && file.size > 4.5 * 1024 * 1024) {
+      alert('Image is too large. Please select an image smaller than 4.5MB.');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -103,9 +109,12 @@ const CreateEvent = () => {
       }
       navigate('/events');
     } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Failed to save event.';
+      let message = err.response?.data?.message || err.message || 'Failed to save event.';
+      if (err.message === 'Network Error') {
+        message = 'Network Error: The request was blocked or timed out. Please check your connection and ensure the image is not too large.';
+      }
       alert(message);
-      console.error(err);
+      console.error('Submission error:', err);
     } finally {
       setIsSubmitting(false);
     }
