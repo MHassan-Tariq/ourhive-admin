@@ -21,6 +21,7 @@ const CreateEvent = () => {
     location: '',
     date: '',
     time: '',
+    endTime: '',
     status: 'Pending'
   });
   const [file, setFile] = useState(null);
@@ -41,7 +42,8 @@ const CreateEvent = () => {
               description: res.data.description || '',
               location: res.data.location || '',
               date: res.data.date ? new Date(res.data.date).toISOString().split('T')[0] : '',
-              time: res.data.time || '',
+              time: res.data.time ? convertTo24h(res.data.time) : '',
+              endTime: res.data.endTime ? convertTo24h(res.data.endTime) : '',
               status: res.data.status || 'Pending'
             });
             if (res.data.flyerUrl) {
@@ -91,8 +93,12 @@ const CreateEvent = () => {
       ];
 
       editableFields.forEach(key => {
-        if (formData[key] !== undefined && formData[key] !== null) {
-          data.append(key, formData[key]);
+        if (formData[key] !== undefined && formData[key] !== null && formData[key] !== '') {
+          let value = formData[key];
+          if (key === 'time' || key === 'endTime') {
+            value = convertTo12h(value);
+          }
+          data.append(key, value);
         }
       });
 
@@ -123,6 +129,33 @@ const CreateEvent = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const convertTo24h = (time12h) => {
+    if (!time12h) return '';
+    try {
+      const [time, modifier] = time12h.split(' ');
+      let [hours, minutes] = time.split(':');
+      hours = parseInt(hours, 10);
+      if (modifier === 'PM' && hours < 12) hours += 12;
+      if (modifier === 'AM' && hours === 12) hours = 0;
+      return `${hours.toString().padStart(2, '0')}:${minutes || '00'}`;
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const convertTo12h = (time24h) => {
+    if (!time24h) return '';
+    try {
+      let [hours, minutes] = time24h.split(':');
+      hours = parseInt(hours, 10);
+      const modifier = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${modifier}`;
+    } catch (e) {
+      return '';
+    }
   };
 
   if (isLoading) {
@@ -205,7 +238,7 @@ const CreateEvent = () => {
                    </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                    <div>
                       <label className="block text-[14px] font-bold text-[#2D3748] mb-2">Event Date</label>
                       <div className="relative">
@@ -213,11 +246,10 @@ const CreateEvent = () => {
                             <CalendarIcon size={18} />
                          </div>
                          <input 
-                           type="text"
+                           type="date"
                            name="date"
                            value={formData.date}
                            onChange={handleChange}
-                           placeholder="mm/dd/yyyy"
                            className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
                          />
                       </div>
@@ -229,11 +261,25 @@ const CreateEvent = () => {
                             <Clock size={18} />
                          </div>
                          <input 
-                           type="text"
+                           type="time"
                            name="time"
                            value={formData.time}
                            onChange={handleChange}
-                           placeholder="-- : -- --"
+                           className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
+                         />
+                      </div>
+                   </div>
+                   <div>
+                      <label className="block text-[14px] font-bold text-[#2D3748] mb-2">End Time</label>
+                      <div className="relative">
+                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A0AEC0]">
+                            <Clock size={18} />
+                         </div>
+                         <input 
+                           type="time"
+                           name="endTime"
+                           value={formData.endTime}
+                           onChange={handleChange}
                            className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
                          />
                       </div>

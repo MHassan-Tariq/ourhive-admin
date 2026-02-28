@@ -177,7 +177,9 @@ const Events = () => {
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
                       <span className="text-[15px] font-medium text-[#2D3748]">{event.date}</span>
-                      <span className="text-[13px] text-[#A0AEC0]">{event.time}</span>
+                      <span className="text-[13px] text-[#A0AEC0]">
+                        {event.time}{event.endTime ? ` - ${event.endTime}` : ''}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
