@@ -90,27 +90,33 @@ const Events = () => {
   }, [search, page]);
 
   const getStatusIndicator = (status) => {
-    const isPending = status === 'Pending';
-    const isDraft = status === 'Draft';
-    
     let dotColor = 'bg-emerald-500';
     let textColor = 'text-emerald-700';
     let bgColor = 'bg-emerald-100';
-    
-    if (isPending) {
-       dotColor = 'bg-amber-500';
-       textColor = 'text-amber-800';
-       bgColor = 'bg-amber-100';
-    } else if (isDraft) {
-       dotColor = 'bg-gray-400';
-       textColor = 'text-gray-700';
-       bgColor = 'bg-gray-100';
+
+    switch (status) {
+      case 'Pending':
+        dotColor = 'bg-amber-500'; textColor = 'text-amber-800'; bgColor = 'bg-amber-100'; break;
+      case 'Draft':
+      case 'Inactive':
+        dotColor = 'bg-gray-400'; textColor = 'text-gray-700'; bgColor = 'bg-gray-100'; break;
+      case 'Suspended':
+      case 'Rejected':
+      case 'Cancelled':
+        dotColor = 'bg-rose-500'; textColor = 'text-rose-800'; bgColor = 'bg-rose-100'; break;
+      case 'Active':
+      case 'Confirmed':
+        dotColor = 'bg-emerald-500'; textColor = 'text-emerald-700'; bgColor = 'bg-emerald-100'; break;
+      case 'Completed':
+        dotColor = 'bg-blue-500'; textColor = 'text-blue-800'; bgColor = 'bg-blue-100'; break;
+      default:
+        dotColor = 'bg-gray-300'; textColor = 'text-gray-600'; bgColor = 'bg-gray-50';
     }
 
     return (
       <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${bgColor}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>
-        <span className={`text-[11px] font-bold tracking-wider ${textColor}`}>{status}</span>
+        <span className={`text-[11px] font-bold tracking-wider ${textColor}`}>{status || 'Unknown'}</span>
       </div>
     );
   };

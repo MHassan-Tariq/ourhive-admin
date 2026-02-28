@@ -7,7 +7,10 @@ import {
   Clock,
   Calendar as CalendarIcon,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck,
+  Users,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -22,8 +25,14 @@ const CreateEvent = () => {
     date: '',
     time: '',
     endTime: '',
-    status: 'Pending'
+    status: 'Active',
+    requiredVolunteers: 1,
+    physicalRequirements: '',
+    dressCode: '',
+    orientation: '',
+    impactStatement: ''
   });
+  const [currentVolunteersCount, setCurrentVolunteersCount] = useState(0);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = React.useRef(null);
@@ -44,8 +53,14 @@ const CreateEvent = () => {
               date: res.data.date ? new Date(res.data.date).toISOString().split('T')[0] : '',
               time: res.data.time ? convertTo24h(res.data.time) : '',
               endTime: res.data.endTime ? convertTo24h(res.data.endTime) : '',
-              status: res.data.status || 'Pending'
+              status: res.data.status || 'Pending',
+              requiredVolunteers: res.data.requiredVolunteers || 1,
+              physicalRequirements: res.data.physicalRequirements || '',
+              dressCode: res.data.dressCode || '',
+              orientation: res.data.orientation || '',
+              impactStatement: res.data.impactStatement || ''
             });
+            setCurrentVolunteersCount(res.data.attendees?.length || 0);
             if (res.data.flyerUrl) {
               setPreviewUrl(res.data.flyerUrl);
             }
@@ -366,6 +381,128 @@ const CreateEvent = () => {
                            </div>
                         );
                      })}
+                  </div>
+               </div>
+            </div>
+            
+            {/* Volunteer Requirements & Warning */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 mt-8">
+               <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                     <Users size={20} />
+                  </div>
+                  <div>
+                     <h3 className="text-lg font-bold text-[#2D3748]">Volunteer Requirements</h3>
+                     <p className="text-sm text-[#718096]">Set volunteer limits and view recruitment status</p>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                     <label className="text-sm font-semibold text-[#4A5568] flex items-center gap-2">
+                        Volunteer Limit
+                        <div className="group relative">
+                           <Info size={14} className="text-[#A0AEC0] cursor-help" />
+                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-[10px] rounded lg:hidden group-hover:block z-10">
+                              Maximum number of volunteers allowed for this event
+                           </div>
+                        </div>
+                     </label>
+                     <input
+                        type="number"
+                        name="requiredVolunteers"
+                        value={formData.requiredVolunteers}
+                        onChange={handleChange}
+                        min="1"
+                        className="w-full px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        placeholder="e.g. 10"
+                     />
+                  </div>
+
+                  <div className="space-y-2">
+                     <label className="text-sm font-semibold text-[#4A5568]">Current Recruitment</label>
+                     <div className="flex items-center gap-3 px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl">
+                        <div className={`w-2 h-2 rounded-full ${currentVolunteersCount > formData.requiredVolunteers ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
+                        <span className="text-sm font-medium text-[#2D3748]">
+                           {currentVolunteersCount} Volunteers Joined
+                        </span>
+                     </div>
+                  </div>
+               </div>
+
+               {currentVolunteersCount > formData.requiredVolunteers && (
+                  <div className="mt-6 flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl">
+                     <AlertTriangle className="text-red-600 shrink-0 mt-0.5" size={18} />
+                     <div>
+                        <h4 className="text-sm font-bold text-red-800 uppercase tracking-wider">Capacity Alert</h4>
+                        <p className="text-sm text-red-700 mt-1">
+                           Warning: This event has exceeded its volunteer limit! (Joined: {currentVolunteersCount} / Limit: {formData.requiredVolunteers})
+                        </p>
+                     </div>
+                  </div>
+               )}
+
+               <div className="mt-8 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                        <label className="text-sm font-semibold text-[#4A5568]">Physical Requirements</label>
+                        <textarea
+                           name="physicalRequirements"
+                           value={formData.physicalRequirements}
+                           onChange={handleChange}
+                           rows="3"
+                           className="w-full px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
+                           placeholder="e.g. Must be able to lift 20 lbs..."
+                        />
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-sm font-semibold text-[#4A5568]">Dress Code</label>
+                        <textarea
+                           name="dressCode"
+                           value={formData.dressCode}
+                           onChange={handleChange}
+                           rows="3"
+                           className="w-full px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
+                           placeholder="e.g. Closed-toe shoes required..."
+                        />
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* Status & Visibility Card */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 mt-8">
+               <div className="flex items-center gap-3 mb-6">
+                  <ShieldCheck size={20} className="text-[#A16D36]" />
+                  <h2 className="text-[18px] font-bold text-[#2D3748]">Status & Visibility</h2>
+               </div>
+               
+               <div className="space-y-4">
+                  <div>
+                     <label className="block text-[13px] font-bold text-[#718096] mb-2 uppercase tracking-wide">Event Status</label>
+                     <select 
+                       name="status"
+                       value={formData.status}
+                       onChange={handleChange}
+                       className="w-full px-4 py-3 bg-[#F7FAFC] border border-[#E2E8F0] rounded-xl text-[15px] font-medium focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all"
+                     >
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending Confirmation</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Suspended">Suspended</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Rejected">Rejected</option>
+                     </select>
+                     <p className="mt-2 text-[12px] text-[#A0AEC0]">
+                        {formData.status === 'Active' && 'This event is visible to all users and open for registration.'}
+                        {formData.status === 'Pending' && 'Waiting for admin confirmation. Not visible to the public yet.'}
+                        {formData.status === 'Inactive' && 'Hidden from the public. Existing registrations are preserved.'}
+                        {formData.status === 'Suspended' && 'Temporarily disabled. Displays a warning to registrants.'}
+                        {formData.status === 'Rejected' && 'Event has been rejected and will not be published.'}
+                     </p>
                   </div>
                </div>
             </div>
