@@ -9,8 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Users,
-  AlertTriangle
+  Users
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -26,13 +25,8 @@ const CreateEvent = () => {
     time: '',
     endTime: '',
     status: 'Active',
-    requiredVolunteers: 1,
-    physicalRequirements: '',
-    dressCode: '',
-    orientation: '',
-    impactStatement: ''
+    requiredVolunteers: 1
   });
-  const [currentVolunteersCount, setCurrentVolunteersCount] = useState(0);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = React.useRef(null);
@@ -54,13 +48,8 @@ const CreateEvent = () => {
               time: res.data.time ? convertTo24h(res.data.time) : '',
               endTime: res.data.endTime ? convertTo24h(res.data.endTime) : '',
               status: res.data.status || 'Pending',
-              requiredVolunteers: res.data.requiredVolunteers || 1,
-              physicalRequirements: res.data.physicalRequirements || '',
-              dressCode: res.data.dressCode || '',
-              orientation: res.data.orientation || '',
-              impactStatement: res.data.impactStatement || ''
+              requiredVolunteers: res.data.requiredVolunteers || 1
             });
-            setCurrentVolunteersCount(res.data.attendees?.length || 0);
             if (res.data.flyerUrl) {
               setPreviewUrl(res.data.flyerUrl);
             }
@@ -100,11 +89,10 @@ const CreateEvent = () => {
     try {
       const data = new FormData();
       
-      // Only send fields that are editable and not objects
+      // Only send fields that are editable
       const editableFields = [
         'title', 'description', 'location', 'date', 'time', 
-        'endTime', 'category', 'requiredVolunteers', 'type', 'status',
-        'impactStatement', 'physicalRequirements', 'dressCode', 'orientation'
+        'endTime', 'requiredVolunteers', 'status'
       ];
 
       editableFields.forEach(key => {
@@ -344,129 +332,29 @@ const CreateEvent = () => {
                </div>
            </div>
            
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 pb-10">
-               <div className="flex flex-col mb-4">
-                  <div className="flex justify-between items-center mb-4">
-                     <h2 className="text-[16px] font-bold text-[#2D3748]">Quick Select Date</h2>
-                     <div className="flex gap-2 text-[#A0AEC0]">
-                        <ChevronLeft size={16} className="cursor-pointer hover:text-[#4A5568]" />
-                        <ChevronRight size={16} className="cursor-pointer hover:text-[#4A5568]" />
-                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-7 text-center mb-4">
-                     {['S','M','T','W','T','F','S'].map(d => (
-                        <span key={d} className="text-[12px] font-bold text-[#A0AEC0]">{d}</span>
-                     ))}
-                  </div>
-                  
-                  <div className="grid grid-cols-7 gap-y-4 text-center text-[14px]">
-                     {[29, 30, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((day, idx) => {
-                        const isMarch = idx >= 2;
-                        const dateStr = `2024-03-${day.toString().padStart(2, '0')}`;
-                        const isSelected = formData.date === dateStr;
-                        
-                        return (
-                           <div key={idx} className="flex justify-center">
-                              <span 
-                                 onClick={() => setFormData(prev => ({ ...prev, date: dateStr }))}
-                                 className={`w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all ${
-                                    isSelected 
-                                    ? 'bg-[#A16D36] text-white font-bold shadow-md shadow-amber-900/20' 
-                                    : !isMarch ? 'text-[#CBD5E0]' : 'text-[#4A5568] font-medium hover:bg-gray-50'
-                                 }`}
-                              >
-                                 {day}
-                              </span>
-                           </div>
-                        );
-                     })}
-                  </div>
-               </div>
-            </div>
-            
-            {/* Volunteer Requirements & Warning */}
+            {/* Volunteer Requirements */}
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-black/5 mt-8">
                <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
                      <Users size={20} />
                   </div>
                   <div>
-                     <h3 className="text-lg font-bold text-[#2D3748]">Volunteer Requirements</h3>
-                     <p className="text-sm text-[#718096]">Set volunteer limits and view recruitment status</p>
+                     <h3 className="text-lg font-bold text-[#2D3748]">Volunteer Limit</h3>
+                     <p className="text-sm text-[#718096]">Set maximum volunteers for this event</p>
                   </div>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                     <label className="text-sm font-semibold text-[#4A5568] flex items-center gap-2">
-                        Volunteer Limit
-                        <div className="group relative">
-                           <Info size={14} className="text-[#A0AEC0] cursor-help" />
-                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-[10px] rounded lg:hidden group-hover:block z-10">
-                              Maximum number of volunteers allowed for this event
-                           </div>
-                        </div>
-                     </label>
-                     <input
-                        type="number"
-                        name="requiredVolunteers"
-                        value={formData.requiredVolunteers}
-                        onChange={handleChange}
-                        min="1"
-                        className="w-full px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                        placeholder="e.g. 10"
-                     />
-                  </div>
-
-                  <div className="space-y-2">
-                     <label className="text-sm font-semibold text-[#4A5568]">Current Recruitment</label>
-                     <div className="flex items-center gap-3 px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl">
-                        <div className={`w-2 h-2 rounded-full ${currentVolunteersCount > formData.requiredVolunteers ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
-                        <span className="text-sm font-medium text-[#2D3748]">
-                           {currentVolunteersCount} Volunteers Joined
-                        </span>
-                     </div>
-                  </div>
-               </div>
-
-               {currentVolunteersCount > formData.requiredVolunteers && (
-                  <div className="mt-6 flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl">
-                     <AlertTriangle className="text-red-600 shrink-0 mt-0.5" size={18} />
-                     <div>
-                        <h4 className="text-sm font-bold text-red-800 uppercase tracking-wider">Capacity Alert</h4>
-                        <p className="text-sm text-red-700 mt-1">
-                           Warning: This event has exceeded its volunteer limit! (Joined: {currentVolunteersCount} / Limit: {formData.requiredVolunteers})
-                        </p>
-                     </div>
-                  </div>
-               )}
-
-               <div className="mt-8 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-[#4A5568]">Physical Requirements</label>
-                        <textarea
-                           name="physicalRequirements"
-                           value={formData.physicalRequirements}
-                           onChange={handleChange}
-                           rows="3"
-                           className="w-full px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
-                           placeholder="e.g. Must be able to lift 20 lbs..."
-                        />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-[#4A5568]">Dress Code</label>
-                        <textarea
-                           name="dressCode"
-                           value={formData.dressCode}
-                           onChange={handleChange}
-                           rows="3"
-                           className="w-full px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all resize-none"
-                           placeholder="e.g. Closed-toe shoes required..."
-                        />
-                     </div>
-                  </div>
+               <div className="space-y-2">
+                  <label className="text-sm font-semibold text-[#4A5568]">How many volunteers are required?</label>
+                  <input
+                     type="number"
+                     name="requiredVolunteers"
+                     value={formData.requiredVolunteers}
+                     onChange={handleChange}
+                     min="1"
+                     className="w-full px-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                     placeholder="e.g. 10"
+                  />
                </div>
             </div>
 
@@ -488,19 +376,11 @@ const CreateEvent = () => {
                      >
                         <option value="Active">Active</option>
                         <option value="Pending">Pending Confirmation</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Suspended">Suspended</option>
-                        <option value="Draft">Draft</option>
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Completed">Completed</option>
                         <option value="Rejected">Rejected</option>
                      </select>
                      <p className="mt-2 text-[12px] text-[#A0AEC0]">
                         {formData.status === 'Active' && 'This event is visible to all users and open for registration.'}
                         {formData.status === 'Pending' && 'Waiting for admin confirmation. Not visible to the public yet.'}
-                        {formData.status === 'Inactive' && 'Hidden from the public. Existing registrations are preserved.'}
-                        {formData.status === 'Suspended' && 'Temporarily disabled. Displays a warning to registrants.'}
                         {formData.status === 'Rejected' && 'Event has been rejected and will not be published.'}
                      </p>
                   </div>
