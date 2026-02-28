@@ -60,6 +60,7 @@ const Events = () => {
                time: e.time,
                location: e.location || 'TBD',
                status: e.status ? e.status.charAt(0).toUpperCase() + e.status.slice(1) : 'Pending',
+               flyerUrl: e.flyerUrl,
                color: colors[idx % colors.length]
              }));
              data = { ...apiData, data: mappedData };
