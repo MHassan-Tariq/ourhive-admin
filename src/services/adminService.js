@@ -112,6 +112,11 @@ const adminService = {
     return response.data;
   },
 
+  deleteEvent: async (id) => {
+    const response = await api.delete(`/admin/events/${id}`);
+    return response.data;
+  },
+
   // Donations
   getDonations: async (params = {}) => {
     const response = await api.get('/admin/in-kind-donations', { params });

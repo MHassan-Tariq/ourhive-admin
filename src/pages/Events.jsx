@@ -8,7 +8,8 @@ import {
   AlertCircle,
   PlusCircle,
   MapPin,
-  Pencil
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -88,6 +89,18 @@ const Events = () => {
 
     return () => clearTimeout(timer);
   }, [search, page]);
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+      try {
+        await adminService.deleteEvent(id);
+        fetchEvents(); // Refresh the list
+      } catch (err) {
+        alert('Failed to delete event. Please try again.');
+        console.error(err);
+      }
+    }
+  };
 
   const getStatusIndicator = (status) => {
     let dotColor = 'bg-emerald-500';
@@ -212,6 +225,13 @@ const Events = () => {
                         title="Edit Event"
                       >
                         <Pencil size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(event._id)} 
+                        className="text-rose-400 hover:text-rose-600 transition-colors p-2"
+                        title="Delete Event"
+                      >
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </td>
