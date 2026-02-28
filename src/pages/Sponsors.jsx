@@ -32,10 +32,8 @@ const Sponsors = () => {
 
   // Mock data to ensure the UI works flawlessly even if the backend endpoint is missing, matching the screenshot
   const mockSponsors = [
-    { _id: '1', name: 'Sarah Jenkins', type: 'Recurring', totalMonetary: 50000, lastActive: '2023-10-15', status: 'Active' },
-    { _id: '2', name: 'Sarah Jenkins', type: 'One-time', totalMonetary: 500, lastActive: '2023-11-01', status: 'Active' },
-    { _id: '3', name: 'Sarah Jenkins', type: 'Recurring', totalMonetary: 25000, lastActive: '2023-09-20', status: 'Inactive' },
-    { _id: '4', name: 'Sarah Jenkins', type: 'One-time', totalMonetary: 1200, lastActive: '2023-10-30', status: 'Active' },
+    { _id: '69a35a6f2ab97bf2ca5104ae', name: 'Sarah Jenkins', type: 'Recurring', totalMonetary: 50000, lastActive: '2023-10-15', status: 'Active' },
+    { _id: '69a35a6f2ab97bf2ca5104af', name: 'John Smith', type: 'One-time', totalMonetary: 500, lastActive: '2023-11-01', status: 'Active' },
   ];
 
   const fetchSponsors = async () => {
@@ -49,31 +47,34 @@ const Sponsors = () => {
           const apiData = await adminService.getSponsors({
             search,
             page,
-            limit: 5,
+            limit: 10,
           });
+          
           if (apiData && apiData.data) {
-             data = apiData;
+            const transformed = apiData.data.map(item => ({
+              ...item,
+              _id: item._id,
+              name: item.organizationName || (item.userId ? `${item.userId.firstName || ''} ${item.userId.lastName || ''}`.trim() : 'Unknown'),
+              type: item.tier || 'Supporter',
+              totalMonetary: item.totalContributed || 0,
+              lastActive: item.updatedAt || item.createdAt,
+              status: item.status || 'Active'
+            }));
+            setSponsors(transformed);
+            setTotalPages(apiData.pages || 1);
+            setTotalCount(apiData.total || transformed.length);
+            return; // Successful API call, exit early
           }
         } catch (e) {
-          console.warn("API not available, using mock data for visual validation");
+          console.warn("API call failed:", e);
+          setError("Failed to load real data. Showing demo records.");
         }
       }
       
-      let sponsorList = data.data || [];
-      if (sponsorList.length > 0 && sponsorList[0].role) {
-         sponsorList = sponsorList.map(user => ({
-             ...user,
-             name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'Unknown Sponsor',
-             type: user.type || 'Recurring', // Default mock UI structure
-             totalMonetary: user.totalMonetary || 0,
-             lastActive: user.createdAt || user.lastActive,
-             status: user.isApproved ? 'Active' : (user.status || 'Pending'),
-           }));
-      }
-      
-      setSponsors(sponsorList.length > 0 ? sponsorList : mockSponsors);
-      setTotalPages(data.pagination?.pages || 1);
-      setTotalCount(data.pagination?.total || sponsorList.length);
+      // Fallback only if API failed or returned nothing
+      setSponsors(mockSponsors);
+      setTotalPages(1);
+      setTotalCount(mockSponsors.length);
     } catch (err) {
       setError('Failed to load sponsors. Please try again.');
       console.error(err);

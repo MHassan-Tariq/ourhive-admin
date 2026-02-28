@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Download, 
-  MoreVertical, 
   CheckCircle2, 
   Clock,
   ChevronLeft,
   ChevronRight,
   Search,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -72,8 +72,8 @@ const Volunteers = () => {
       ...volunteers.map(v => {
         const name = `"${v.firstName || ''} ${v.lastName || ''}"`.trim();
         const email = `"${v.userId?.email || 'N/A'}"`;
-        const hours = v.approvedHours || 0;
-        const status = `"${v.screeningStatus || 'Pending'}"`;
+        const hours = v.totalHours || 0;
+        const status = `"${v.backgroundCheckStatus || 'Pending'}"`;
         return [name, email, hours, status].join(",");
       })
     ].join("\n");
@@ -151,7 +151,7 @@ const Volunteers = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {volunteers.map((v) => {
-                  const badge = getBadgeStyle(v.approvedHours);
+                  const badge = getBadgeStyle(v.totalHours);
                   return (
                     <tr key={v._id} onClick={() => navigate(`/volunteers/${v._id}`)} className="group hover:bg-gray-50 cursor-pointer transition-colors">
                       <td className="px-6 py-4">
@@ -165,22 +165,28 @@ const Volunteers = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-gray-700">{v.approvedHours || 0} hrs</td>
+                      <td className="px-6 py-4 text-sm font-bold text-gray-700">{v.totalHours || 0} hrs</td>
                       <td className="px-6 py-4">
                         <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${badge.style}`}>
                           {badge.label}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className={`flex items-center gap-2 text-sm font-bold ${v.screeningStatus === 'cleared' ? 'text-green-600' : 'text-orange-500'}`}>
-                          {v.screeningStatus === 'cleared' ? <CheckCircle2 size={16} /> : <Clock size={16} />}
-                          <span className="capitalize">{v.screeningStatus || 'Pending'}</span>
+                        <div className={`flex items-center gap-2 text-sm font-bold ${v.backgroundCheckStatus === 'Verified' ? 'text-green-600' : 'text-orange-500'}`}>
+                          {v.backgroundCheckStatus === 'Verified' ? <CheckCircle2 size={16} /> : <Clock size={16} />}
+                          <span className="capitalize">{v.backgroundCheckStatus || 'Pending'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button onClick={(e) => { e.stopPropagation(); }} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-                          <MoreVertical size={18} />
-                        </button>
+                        <div className="flex items-center justify-end">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); navigate(`/volunteers/${v._id}`); }} 
+                            className="p-2 text-gray-400 hover:text-primary rounded-lg hover:bg-primary/5 transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

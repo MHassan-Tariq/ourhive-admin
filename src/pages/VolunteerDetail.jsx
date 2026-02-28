@@ -78,7 +78,7 @@ const VolunteerDetail = () => {
       });
       setVolunteer(prev => ({ 
         ...prev, 
-        approvedHours: (prev.approvedHours || 0) + parseFloat(hoursToAdd) 
+        totalHours: (prev.totalHours || 0) + parseFloat(hoursToAdd) 
       }));
       setHoursToAdd('');
       setNotes('');
@@ -147,7 +147,7 @@ const VolunteerDetail = () => {
                   {volunteer.firstName?.[0] || ''}{volunteer.lastName?.[0] || ''}
                 </div>
               )}
-              {volunteer.screeningStatus === 'cleared' && (
+              {volunteer.backgroundCheckStatus === 'Verified' && (
                 <div className="absolute -bottom-px right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
               )}
             </div>
@@ -170,20 +170,20 @@ const VolunteerDetail = () => {
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">BACKGROUND CHECK</h3>
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Current Status</label>
             <div className={`${
-              volunteer.screeningStatus === 'cleared' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'
+              volunteer.backgroundCheckStatus === 'Verified' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'
             } px-4 py-3 rounded-xl flex items-center gap-3 font-bold text-sm mb-6`}>
-              {volunteer.screeningStatus === 'cleared' ? <CheckCircle2 size={18} /> : <Clock size={18} />}
-              <span className="capitalize">{volunteer.screeningStatus || 'Pending'}</span>
+              {volunteer.backgroundCheckStatus === 'Verified' ? <CheckCircle2 size={18} /> : <Clock size={18} />}
+              <span className="capitalize">{volunteer.backgroundCheckStatus || 'Pending'}</span>
             </div>
             
             <div className="flex items-center justify-between mb-8">
               <span className="text-sm font-bold text-gray-700">Mark as Verified</span>
               <button 
-                onClick={() => handleUpdateStatus(volunteer.screeningStatus === 'cleared' ? 'pending' : 'cleared')}
+                onClick={() => handleUpdateStatus(volunteer.backgroundCheckStatus === 'Verified' ? 'Pending' : 'Verified')}
                 disabled={isUpdatingStatus}
-                className={`w-11 h-6 rounded-full relative transition-colors ${volunteer.screeningStatus === 'cleared' ? 'bg-primary' : 'bg-gray-200'}`}
+                className={`w-11 h-6 rounded-full relative transition-colors ${volunteer.backgroundCheckStatus === 'Verified' ? 'bg-primary' : 'bg-gray-200'}`}
               >
-                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${volunteer.screeningStatus === 'cleared' ? 'translate-x-6' : 'translate-x-1'}`}></div>
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${volunteer.backgroundCheckStatus === 'Verified' ? 'translate-x-6' : 'translate-x-1'}`}></div>
               </button>
             </div>
           </div>
@@ -252,7 +252,7 @@ const VolunteerDetail = () => {
               <div className="bg-white rounded-2xl border border-black/5 p-6 border-b-4 border-b-primary shadow-xl shadow-primary/5">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 block">TOTAL HOURS</label>
                 <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-bold text-primary">{volunteer.approvedHours || 0}</span>
+                  <span className="text-3xl font-bold text-primary">{volunteer.totalHours || 0}</span>
                   <span className="text-[11px] font-bold text-green-500 flex items-center gap-1">
                     <TrendingUp size={14} />
                     Active

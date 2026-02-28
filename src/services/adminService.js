@@ -36,16 +36,12 @@ const adminService = {
 
   // Volunteers
   getVolunteers: async (params = {}) => {
-    const response = await api.get('/admin/users', { 
-      params: { ...params, role: 'volunteer' } 
-    });
+    const response = await api.get('/admin/volunteers', { params });
     return response.data;
   },
 
   getVolunteerDetail: async (id) => {
-    // Note: If there's a specific admin/volunteer detail endpoint, use it here.
-    // Based on Swagger, we might use the general users endpoint if specific doesn't exist.
-    const response = await api.get(`/admin/users/${id}`);
+    const response = await api.get(`/admin/volunteers/${id}`);
     return response.data;
   },
 
