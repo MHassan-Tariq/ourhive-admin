@@ -232,45 +232,62 @@ const Partners = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {partners.map((partner, idx) => (
-                <tr key={partner._id || idx} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full ${partner.organizationLogoUrl ? 'bg-white border border-black/5' : partner.iconBg} flex items-center justify-center shrink-0 overflow-hidden`}>
-                         {partner.organizationLogoUrl ? (
-                           <img src={partner.organizationLogoUrl} alt="" className="w-full h-full object-contain p-1" />
-                         ) : (
-                           getIcon(partner.iconType, partner.iconColor)
-                         )}
-                      </div>
-                      <span className="text-[15px] font-bold text-[#2D3748]">{partner.name}</span>
+              {isLoading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Loader2 className="animate-spin text-amber-600" size={32} />
+                      Loading partners...
                     </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className={getTypeBadge(partner.type)}>{partner.type}</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex flex-col">
-                      <span className="text-[14px] font-medium text-[#2D3748]">{partner.contactName}</span>
-                      <span className="text-[13px] text-[#A0AEC0]">{partner.contactEmail}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="text-[14px] text-[#4A5568]">{partner.agreement}</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    {getStatusIndicator(partner.status)}
-                  </td>
-                  <td className="px-6 py-5 text-right">
-                    <button 
-                      onClick={() => navigate(`/partners/${partner._id}`)} 
-                      className="text-gray-400 hover:text-gray-600 transition-colors p-2"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
                   </td>
                 </tr>
-              ))}
+              ) : partners.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                    No partners found
+                  </td>
+                </tr>
+              ) : (
+                partners.map((partner, idx) => (
+                  <tr key={partner._id || idx} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full ${partner.organizationLogoUrl ? 'bg-white border border-black/5' : partner.iconBg} flex items-center justify-center shrink-0 overflow-hidden`}>
+                           {partner.organizationLogoUrl ? (
+                             <img src={partner.organizationLogoUrl} alt="" className="w-full h-full object-contain p-1" />
+                           ) : (
+                             getIcon(partner.iconType, partner.iconColor)
+                           )}
+                        </div>
+                        <span className="text-[15px] font-bold text-[#2D3748]">{partner.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <span className={getTypeBadge(partner.type)}>{partner.type}</span>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col">
+                        <span className="text-[14px] font-medium text-[#2D3748]">{partner.contactName}</span>
+                        <span className="text-[13px] text-[#A0AEC0]">{partner.contactEmail}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <span className="text-[14px] text-[#4A5568]">{partner.agreement}</span>
+                    </td>
+                    <td className="px-6 py-5">
+                      {getStatusIndicator(partner.status)}
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <button 
+                        onClick={() => navigate(`/partners/${partner._id}`)} 
+                        className="text-gray-400 hover:text-gray-600 transition-colors p-2"
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
