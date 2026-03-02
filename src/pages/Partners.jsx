@@ -9,7 +9,8 @@ import {
   Building2,
   Leaf,
   Users,
-  Building
+  Building,
+  Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -277,12 +278,13 @@ const Partners = () => {
                     <td className="px-6 py-5">
                       {getStatusIndicator(partner.status)}
                     </td>
-                    <td className="px-6 py-5 text-right">
+                    <td className="px-6 py-5 text-right flex justify-end gap-2">
                       <button 
                         onClick={() => navigate(`/partners/${partner._id}`)} 
-                        className="text-gray-400 hover:text-gray-600 transition-colors p-2"
+                        className="text-gray-400 hover:text-amber-600 transition-colors p-2 bg-gray-50 hover:bg-amber-50 rounded-lg"
+                        title="View Details"
                       >
-                        <MoreVertical size={18} />
+                        <Eye size={18} />
                       </button>
                     </td>
                   </tr>
