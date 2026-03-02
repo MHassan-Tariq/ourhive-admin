@@ -106,6 +106,11 @@ const adminService = {
     return response.data;
   },
 
+  deletePartner: async (id) => {
+    const response = await api.delete(`/admin/community-partners/${id}`);
+    return response.data;
+  },
+
   // Events
   getEvents: async (params = {}) => {
     const response = await api.get('/admin/events', { params });

@@ -101,9 +101,9 @@ const PartnerDetail = () => {
     
     // Map internal action names to API status names if different
     const statusMap = {
-       approve: 'approved',
-       suspend: 'suspended',
-       reject: 'rejected'
+       approve: 'Active',
+       suspend: 'Suspended',
+       reject: 'Rejected'
     };
     
     setActionLoading(actionType);
@@ -155,18 +155,16 @@ const PartnerDetail = () => {
     );
   }
 
-  const {
-    orgName = '',
-    orgType = '',
-    legalEntityName = '',
-    registrationNumber = '',
-    headquarters = '',
-    taxStatus = '',
-    companyOverview = '',
-    onboardingScore = 0,
-    status = 'PENDING',
-    agreementHistory = []
-  } = partner;
+  const orgName = partner.orgName || 'N/A';
+  const orgType = partner.orgType || 'PARTNER';
+  const legalEntityName = partner.legalEntityName || partner.orgName || 'N/A';
+  const registrationNumber = partner.registrationNumber || 'N/A';
+  const headquarters = partner.headquarters || partner.address || 'N/A';
+  const taxStatus = partner.taxStatus || 'Pending';
+  const companyOverview = partner.companyOverview || partner.description || 'No overview provided.';
+  const onboardingScore = partner.onboardingScore || 0;
+  const status = partner.status || 'PENDING';
+  const agreementHistory = partner.agreementHistory || [];
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 pb-12 max-w-7xl mx-auto">
@@ -238,7 +236,7 @@ const PartnerDetail = () => {
         </div>
       </div>
  
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 mb-8">
+      <div className="grid grid-cols-1 gap-8 mb-8">
         {/* Organization Information Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
           <div className="p-6 md:p-8 flex items-center gap-3">
@@ -274,92 +272,8 @@ const PartnerDetail = () => {
              </div>
           </div>
         </div>
-        
-        {/* Onboarding Score Card */}
-        <div className="bg-[#B98C53] rounded-2xl p-8 text-white shadow-lg shadow-amber-900/10 h-fit relative overflow-hidden">
-          <div className="relative z-10">
-             <p className="text-[11px] font-bold uppercase tracking-widest text-white/80 mb-2">ONBOARDING SCORE</p>
-             <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-[48px] font-bold leading-none">{onboardingScore}</span>
-                <span className="text-[18px] text-white/70 font-bold">/ 100</span>
-             </div>
-             
-             <div className="w-full h-1.5 bg-black/20 rounded-full mb-6">
-                <div 
-                  className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
-                  style={{ width: `${onboardingScore}%` }}
-                ></div>
-             </div>
-             
-             <p className="text-[13px] text-white/90 leading-relaxed font-medium pr-4">
-                Partner has completed 100% of required documentation and background checks.
-             </p>
-          </div>
-          
-          {/* Decorative background circle */}
-          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-        </div>
       </div>
- 
-      {/* Agreement Details Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
-         <div className="p-6 md:p-8 flex items-center gap-3 border-b border-black/5">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[18px] h-[18px] text-[#A16D36]">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-            <h2 className="text-[18px] font-bold text-[#2D3748]">Agreement Details</h2>
-         </div>
-         
-         <div className="overflow-x-auto p-2">
-           <table className="w-full text-left border-collapse">
-              <thead>
-                 <tr>
-                    <th className="px-6 py-4 text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">AGREEMENT VERSION</th>
-                    <th className="px-6 py-4 text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">TIMESTAMP</th>
-                    <th className="px-6 py-4 text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">REPRESENTATIVE</th>
-                    <th className="px-6 py-4 text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">STATUS</th>
-                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                 {agreementHistory && agreementHistory.length > 0 ? (
-                   agreementHistory.map((agreement) => (
-                    <tr key={agreement._id || agreement.id} className="hover:bg-gray-50 transition-colors">
-                       <td className="px-6 py-5">
-                          <div className="flex items-center gap-2">
-                            <FileText size={16} className="text-[#A16D36]" />
-                            <span className="text-[14px] font-bold text-[#2D3748]">{agreement.version}</span>
-                          </div>
-                       </td>
-                       <td className="px-6 py-5">
-                          <span className="text-[14px] font-medium text-[#718096] whitespace-nowrap">
-                             {formatDateTime(agreement.timestamp)}
-                          </span>
-                       </td>
-                       <td className="px-6 py-5">
-                          <span className="text-[14px] font-medium text-[#718096]">{agreement.representative}</span>
-                       </td>
-                       <td className="px-6 py-5">
-                          <span className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wider ${
-                            agreement.status === 'Executed' 
-                              ? 'bg-emerald-50 text-emerald-600' 
-                              : 'bg-gray-100 text-gray-500'
-                          }`}>
-                             {agreement.status}
-                          </span>
-                       </td>
-                    </tr>
-                   ))
-                 ) : (
-                   <tr>
-                     <td colSpan="4" className="px-6 py-10 text-center text-sm text-gray-400">
-                       No agreement history found.
-                     </td>
-                   </tr>
-                 )}
-              </tbody>
-           </table>
-         </div>
-      </div>
+
     </div>
   );
 };

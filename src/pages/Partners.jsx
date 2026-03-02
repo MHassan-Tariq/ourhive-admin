@@ -10,7 +10,8 @@ import {
   Leaf,
   Users,
   Building,
-  Eye
+  Eye,
+  Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -131,6 +132,8 @@ const Partners = () => {
              data = { ...apiData, data: mappedData };
           }
         } catch (e) {
+          console.error("Fetch partners error:", e);
+          alert("Error fetching real partners: " + e.message);
           console.warn("API not available, using mock data for visual validation");
         }
       }
@@ -143,6 +146,20 @@ const Partners = () => {
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this partner? This action cannot be undone.')) return;
+    
+    try {
+      await adminService.deletePartner(id);
+      fetchPartners(); // Refresh list
+    } catch (err) {
+      console.error('Failed to delete partner:', err);
+      console.error('Error response data:', err.response?.data);
+      console.error('Error response status:', err.response?.status);
+      alert(`Failed to delete partner. Error: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -285,6 +302,13 @@ const Partners = () => {
                         title="View Details"
                       >
                         <Eye size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(partner._id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors p-2 bg-gray-50 hover:bg-red-50 rounded-lg"
+                        title="Delete Partner"
+                      >
+                        <Trash2 size={18} />
                       </button>
                     </td>
                   </tr>
