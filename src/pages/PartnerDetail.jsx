@@ -101,7 +101,7 @@ const PartnerDetail = () => {
     
     // Map internal action names to API status names if different
     const statusMap = {
-       approve: 'active',
+       approve: 'approved',
        suspend: 'suspended',
        reject: 'rejected'
     };
