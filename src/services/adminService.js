@@ -97,6 +97,15 @@ const adminService = {
     return response.data;
   },
 
+  updatePartner: async (id, formData) => {
+    const response = await api.patch(`/admin/community-partners/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // Events
   getEvents: async (params = {}) => {
     const response = await api.get('/admin/events', { params });

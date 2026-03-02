@@ -15,7 +15,8 @@ import {
   Ban,
   PauseCircle,
   CheckCircle2,
-  Building2
+  Building2,
+  Camera
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -27,6 +28,28 @@ const PartnerDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    setIsUploading(true);
+    try {
+      const response = await adminService.updatePartner(id, formData);
+      if (response.success) {
+        setPartner(prev => ({ ...prev, organizationLogoUrl: response.data.organizationLogoUrl }));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload logo.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Mock data for visual completeness matching Screenshot 2
   const mockPartner = {
@@ -148,21 +171,41 @@ const PartnerDetail = () => {
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 pb-12 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
-        <div>
-           <div className="flex items-center gap-3 mb-2">
-              <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">
-                {status}
-              </span>
-              <span className="text-sm text-[#A0AEC0] font-medium">
-                ID: <span className="font-mono tracking-wide">{id}</span>
-              </span>
+        <div className="flex items-center gap-6">
+           <div className="relative group">
+             <div className="w-24 h-24 rounded-2xl bg-white border border-black/5 flex items-center justify-center overflow-hidden shadow-sm">
+               {partner.organizationLogoUrl ? (
+                 <img src={partner.organizationLogoUrl} alt={orgName} className="w-full h-full object-contain p-2" />
+               ) : (
+                 <Building2 size={40} className="text-gray-300" />
+               )}
+               {isUploading && (
+                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                   <Loader2 className="animate-spin text-white" size={24} />
+                 </div>
+               )}
+             </div>
+             <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#A16D36] text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-amber-800 transition-colors border-2 border-white">
+               <Camera size={14} />
+               <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={isUploading} />
+             </label>
            </div>
-           <h1 className="text-[36px] font-bold text-[#1a202c] leading-tight tracking-tight">
-             {orgName}
-           </h1>
-           <p className="text-[16px] text-[#718096] mt-1">
-             {orgType}
-           </p>
+           <div>
+              <div className="flex items-center gap-3 mb-2">
+                 <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">
+                   {status}
+                 </span>
+                 <span className="text-sm text-[#A0AEC0] font-medium">
+                   ID: <span className="font-mono tracking-wide">{id}</span>
+                 </span>
+              </div>
+              <h1 className="text-[36px] font-bold text-[#1a202c] leading-tight tracking-tight">
+                {orgName}
+              </h1>
+              <p className="text-[16px] text-[#718096] mt-1">
+                {orgType}
+              </p>
+           </div>
         </div>
         
         <div className="flex items-center gap-3 mt-4 md:mt-0">

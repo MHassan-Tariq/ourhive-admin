@@ -236,8 +236,12 @@ const Partners = () => {
                 <tr key={partner._id || idx} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full ${partner.iconBg} flex items-center justify-center shrink-0`}>
-                         {getIcon(partner.iconType, partner.iconColor)}
+                      <div className={`w-10 h-10 rounded-full ${partner.organizationLogoUrl ? 'bg-white border border-black/5' : partner.iconBg} flex items-center justify-center shrink-0 overflow-hidden`}>
+                         {partner.organizationLogoUrl ? (
+                           <img src={partner.organizationLogoUrl} alt="" className="w-full h-full object-contain p-1" />
+                         ) : (
+                           getIcon(partner.iconType, partner.iconColor)
+                         )}
                       </div>
                       <span className="text-[15px] font-bold text-[#2D3748]">{partner.name}</span>
                     </div>
