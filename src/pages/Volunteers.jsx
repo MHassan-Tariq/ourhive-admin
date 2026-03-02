@@ -145,7 +145,8 @@ const Volunteers = () => {
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">NAME</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">TOTAL HOURS</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">BADGE LEVEL</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">BACKGROUND CHECK</th>
+                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">APPROVAL</th>
+                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">BACKGROUND</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">ACTIONS</th>
                 </tr>
               </thead>
@@ -172,13 +173,38 @@ const Volunteers = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
+                        <div className={`flex items-center gap-2 text-sm font-bold ${v.userId?.isApproved ? 'text-green-600' : 'text-orange-500'}`}>
+                          {v.userId?.isApproved ? <CheckCircle2 size={16} /> : <Clock size={16} />}
+                          <span>{v.userId?.isApproved ? 'Approved' : 'Pending'}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
                         <div className={`flex items-center gap-2 text-sm font-bold ${v.backgroundCheckStatus === 'Verified' ? 'text-green-600' : 'text-orange-500'}`}>
                           {v.backgroundCheckStatus === 'Verified' ? <CheckCircle2 size={16} /> : <Clock size={16} />}
                           <span className="capitalize">{v.backgroundCheckStatus || 'Pending'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-end gap-2">
+                          {!v.userId?.isApproved && (
+                            <button 
+                              onClick={async (e) => { 
+                                e.stopPropagation(); 
+                                if (window.confirm(`Approve ${v.firstName}?`)) {
+                                  try {
+                                    await adminService.approveVolunteer(v._id, true);
+                                    fetchVolunteers();
+                                  } catch (err) {
+                                    alert("Failed to approve volunteer");
+                                  }
+                                }
+                              }} 
+                              className="p-2 text-green-500 hover:text-green-700 rounded-lg hover:bg-green-50 transition-colors"
+                              title="Approve Volunteer"
+                            >
+                              <UserCheck size={18} />
+                            </button>
+                          )}
                           <button 
                             onClick={(e) => { e.stopPropagation(); navigate(`/volunteers/${v._id}`); }} 
                             className="p-2 text-gray-400 hover:text-primary rounded-lg hover:bg-primary/5 transition-colors"

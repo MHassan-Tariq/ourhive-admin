@@ -55,6 +55,11 @@ const adminService = {
     return response.data;
   },
 
+  approveVolunteer: async (id, isApproved) => {
+    const response = await api.patch(`/admin/volunteers/${id}/approve`, { isApproved });
+    return response.data;
+  },
+
   // Sponsors
   getSponsors: async (params = {}) => {
     const response = await api.get('/admin/sponsors', { params });

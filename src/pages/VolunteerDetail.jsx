@@ -177,6 +177,32 @@ const VolunteerDetail = () => {
             </div>
             
             <div className="flex items-center justify-between mb-8">
+              <span className="text-sm font-bold text-gray-700">Account Approved</span>
+              <button 
+                onClick={async () => {
+                  setIsUpdatingStatus(true);
+                  try {
+                    const newStatus = !volunteer.userId?.isApproved;
+                    await adminService.approveVolunteer(id, newStatus);
+                    setVolunteer(prev => ({ 
+                      ...prev, 
+                      userId: { ...prev.userId, isApproved: newStatus },
+                      backgroundCheckStatus: newStatus ? 'Verified' : prev.backgroundCheckStatus
+                    }));
+                  } catch (err) {
+                    alert('Failed to update approval status.');
+                  } finally {
+                    setIsUpdatingStatus(false);
+                  }
+                }}
+                disabled={isUpdatingStatus}
+                className={`w-11 h-6 rounded-full relative transition-colors ${volunteer.userId?.isApproved ? 'bg-primary' : 'bg-gray-200'}`}
+              >
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${volunteer.userId?.isApproved ? 'translate-x-6' : 'translate-x-1'}`}></div>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between mb-8">
               <span className="text-sm font-bold text-gray-700">Mark as Verified</span>
               <button 
                 onClick={() => handleUpdateStatus(volunteer.backgroundCheckStatus === 'Verified' ? 'Pending' : 'Verified')}
