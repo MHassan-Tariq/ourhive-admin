@@ -158,8 +158,12 @@ const Volunteers = () => {
                     <tr key={v._id} onClick={() => navigate(`/volunteers/${v._id}`)} className="group hover:bg-gray-50 cursor-pointer transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm mr-3">
-                            {v.userId?.firstName?.[0] || ''}{v.userId?.lastName?.[0] || ''}
+                          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm mr-3 overflow-hidden">
+                            {v.userId?.profilePictureUrl ? (
+                              <img src={v.userId.profilePictureUrl} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <>{v.userId?.firstName?.[0] || ''}{v.userId?.lastName?.[0] || ''}</>
+                            )}
                           </div>
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-gray-800">{v.userId?.firstName || ''} {v.userId?.lastName || ''}</span>
