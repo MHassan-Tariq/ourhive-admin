@@ -61,7 +61,7 @@ const Events = () => {
                time: e.time,
                location: e.location || 'TBD',
                status: e.status ? e.status.charAt(0).toUpperCase() + e.status.slice(1) : 'Pending',
-               flyerUrl: e.flyerUrl,
+               imageurl: e.imageurl || e.flyerUrl,
                color: colors[idx % colors.length]
              }));
              data = { ...apiData, data: mappedData };
@@ -183,8 +183,8 @@ const Events = () => {
                 <tr key={event._id || idx} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
-                      {event.flyerUrl ? (
-                        <img src={event.flyerUrl} alt={event.title} className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                      {event.imageurl ? (
+                        <img src={event.imageurl} alt={event.title} className="w-12 h-12 rounded-full object-cover shadow-sm" />
                       ) : (
                         <div className={`w-12 h-12 rounded-full ${event.color || 'bg-gray-200'} shrink-0 shadow-sm flex items-center justify-center text-white font-bold`}>
                           {event.title.charAt(0)}

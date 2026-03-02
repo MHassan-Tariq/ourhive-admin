@@ -54,8 +54,8 @@ const CreateEvent = () => {
               requiredVolunteers: res.data.requiredVolunteers || 1,
               partnerId: res.data.partnerId?._id || res.data.partnerId || ''
             });
-            if (res.data.flyerUrl) {
-              setPreviewUrl(res.data.flyerUrl);
+            if (res.data.imageurl || res.data.flyerUrl) {
+              setPreviewUrl(res.data.imageurl || res.data.flyerUrl);
             }
           }
         } catch (err) {

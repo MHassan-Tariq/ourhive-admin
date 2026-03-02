@@ -85,15 +85,16 @@ const Profile = ({ onUpdate }) => {
       const response = await adminService.updateAdminProfile(formData);
       
       // Update local storage so Topbar reflects changes
-      const updatedUser = response.data || response;
-      if (updatedUser) {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setCurrentPhoto(updatedUser.profilePictureUrl);
+      const resData = response.data || response;
+      const userData = resData && typeof resData === 'object' && 'firstName' in resData ? resData : (resData?.data || resData);
+      
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        setCurrentPhoto(userData.profilePictureUrl);
         setImageFile(null);
         setImagePreview(null);
         
-        // Notify parent component to update Topbar/Sidebar
-        if (onUpdate) onUpdate(updatedUser);
+        if (onUpdate) onUpdate(userData);
       }
       
       alert("Profile settings saved successfully");
