@@ -8,7 +8,8 @@ import {
   Search,
   Loader2,
   AlertCircle,
-  Eye
+  Eye,
+  UserCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -158,10 +159,10 @@ const Volunteers = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm mr-3">
-                            {v.firstName?.[0] || ''}{v.lastName?.[0] || ''}
+                            {v.userId?.firstName?.[0] || ''}{v.userId?.lastName?.[0] || ''}
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-sm font-bold text-gray-800">{v.firstName} {v.lastName}</span>
+                            <span className="text-sm font-bold text-gray-800">{v.userId?.firstName || ''} {v.userId?.lastName || ''}</span>
                             <span className="text-xs text-gray-400">{v.userId?.email || 'N/A'}</span>
                           </div>
                         </div>
@@ -190,7 +191,7 @@ const Volunteers = () => {
                             <button 
                               onClick={async (e) => { 
                                 e.stopPropagation(); 
-                                if (window.confirm(`Approve ${v.firstName}?`)) {
+                                if (window.confirm(`Approve ${v.userId?.firstName || 'this volunteer'}?`)) {
                                   try {
                                     await adminService.approveVolunteer(v._id, true);
                                     fetchVolunteers();

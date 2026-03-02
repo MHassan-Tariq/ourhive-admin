@@ -136,22 +136,22 @@ const VolunteerDetail = () => {
         <div className="w-full lg:w-[320px] space-y-6 shrink-0">
           <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-8 text-center">
             <div className="relative w-24 h-24 mx-auto mb-6">
-              {volunteer.profilePictureUrl ? (
+              {volunteer.userId?.profilePictureUrl || volunteer.profilePictureUrl ? (
                 <img 
-                  src={volunteer.profilePictureUrl} 
-                  alt={`${volunteer.firstName} ${volunteer.lastName}`}
+                  src={volunteer.userId?.profilePictureUrl || volunteer.profilePictureUrl} 
+                  alt={`${volunteer.userId?.firstName || ''} ${volunteer.userId?.lastName || ''}`}
                   className="w-full h-full rounded-full object-cover border-4 border-white shadow-lg"
                 />
               ) : (
                 <div className="w-full h-full rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-2xl border-4 border-white shadow-lg">
-                  {volunteer.firstName?.[0] || ''}{volunteer.lastName?.[0] || ''}
+                  {volunteer.userId?.firstName?.[0] || ''}{volunteer.userId?.lastName?.[0] || ''}
                 </div>
               )}
               {volunteer.backgroundCheckStatus === 'Verified' && (
                 <div className="absolute -bottom-px right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
               )}
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-1">{volunteer.firstName} {volunteer.lastName}</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-1">{volunteer.userId?.firstName || ''} {volunteer.userId?.lastName || ''}</h2>
             <span className="text-xs font-bold text-primary uppercase tracking-wider mb-6 block">Joined {new Date(volunteer.createdAt).toLocaleDateString()}</span>
             
             <div className="pt-6 border-t border-gray-50 space-y-4 text-left">
