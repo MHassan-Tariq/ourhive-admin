@@ -25,8 +25,11 @@ const CreateEvent = () => {
     time: '',
     endTime: '',
     status: 'Active',
-    requiredVolunteers: 1
+    requiredVolunteers: 1,
+    partnerId: ''
   });
+  const [partners, setPartners] = useState([]);
+  const [errors, setErrors] = useState({});
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = React.useRef(null);
@@ -48,7 +51,8 @@ const CreateEvent = () => {
               time: res.data.time ? convertTo24h(res.data.time) : '',
               endTime: res.data.endTime ? convertTo24h(res.data.endTime) : '',
               status: res.data.status || 'Pending',
-              requiredVolunteers: res.data.requiredVolunteers || 1
+              requiredVolunteers: res.data.requiredVolunteers || 1,
+              partnerId: res.data.partnerId?._id || res.data.partnerId || ''
             });
             if (res.data.flyerUrl) {
               setPreviewUrl(res.data.flyerUrl);
@@ -62,7 +66,33 @@ const CreateEvent = () => {
       };
       fetchDetail();
     }
+
+    const fetchPartners = async () => {
+      try {
+        const res = await adminService.getPartners({ limit: 100 });
+        if (res?.data) {
+          setPartners(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch partners:", err);
+      }
+    };
+    fetchPartners();
   }, [id]);
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.title) newErrors.title = 'Title is required';
+    if (!formData.description) newErrors.description = 'Description is required';
+    if (!formData.location) newErrors.location = 'Location is required';
+    if (!formData.date) newErrors.date = 'Date is required';
+    if (!formData.time) newErrors.time = 'Start time is required';
+    if (!formData.endTime) newErrors.endTime = 'End time is required';
+    if (!formData.partnerId) newErrors.partnerId = 'Community Partner is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -79,6 +109,11 @@ const CreateEvent = () => {
   const handleSubmit = async (e) => {
     e?.preventDefault();
 
+    if (!validateForm()) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
     if (file && file.size > 4.5 * 1024 * 1024) {
       alert('Image is too large. Please select an image smaller than 4.5MB.');
       return;
@@ -92,7 +127,7 @@ const CreateEvent = () => {
       // Only send fields that are editable
       const editableFields = [
         'title', 'description', 'location', 'date', 'time', 
-        'endTime', 'requiredVolunteers', 'status'
+        'endTime', 'requiredVolunteers', 'status', 'partnerId'
       ];
 
       editableFields.forEach(key => {
@@ -198,8 +233,9 @@ const CreateEvent = () => {
                      value={formData.title}
                      onChange={handleChange}
                      placeholder="e.g. Summer Music Festival 2024"
-                     className="w-full px-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
+                     className={`w-full px-4 py-3.5 bg-white border ${errors.title ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]`}
                    />
+                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
                 </div>
                 
                 <div>
@@ -210,9 +246,38 @@ const CreateEvent = () => {
                      onChange={handleChange}
                      placeholder="Describe your event..."
                      rows={5}
-                     className="w-full px-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0] resize-none"
+                     className={`w-full px-4 py-3.5 bg-white border ${errors.description ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0] resize-none`}
                    ></textarea>
+                   {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                 </div>
+             </div>
+          </div>
+
+          {/* Partner Selection Card */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
+             <div className="flex items-center gap-3 mb-6">
+                <Users size={20} className="text-[#A16D36]" />
+                <h2 className="text-[20px] font-bold text-[#2D3748]">Community Partner</h2>
+             </div>
+             <div>
+                <label className="block text-[14px] font-bold text-[#2D3748] mb-2">Select Organizer / Partner</label>
+                <select 
+                  name="partnerId"
+                  value={formData.partnerId}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 bg-[#F7FAFC] border ${errors.partnerId ? 'border-red-500' : 'border-black/5'} rounded-xl text-sm focus:ring-2 focus:ring-[#A16D36]/20 outline-none transition-all`}
+                >
+                   <option value="">Select a partner...</option>
+                   {partners.map(partner => (
+                     <option key={partner._id} value={partner.userId?._id || partner.userId}>
+                       {partner.orgName} ({partner.userId?.firstName || 'Unknown'} {partner.userId?.lastName || ''})
+                     </option>
+                   ))}
+                </select>
+                {errors.partnerId && <p className="text-red-500 text-xs mt-1">{errors.partnerId}</p>}
+                <p className="mt-2 text-[12px] text-[#A0AEC0]">
+                   Select the community partner who is organizing this event. This event will appear in their account.
+                </p>
              </div>
           </div>
 
@@ -236,8 +301,9 @@ const CreateEvent = () => {
                         value={formData.location}
                         onChange={handleChange}
                         placeholder="Venue Name, City, Country"
-                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
+                        className={`w-full pl-11 pr-4 py-3.5 bg-white border ${errors.location ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]`}
                       />
+                      {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
                    </div>
                 </div>
                 
@@ -253,8 +319,9 @@ const CreateEvent = () => {
                            name="date"
                            value={formData.date}
                            onChange={handleChange}
-                           className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
+                           className={`w-full pl-11 pr-4 py-3.5 bg-white border ${errors.date ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]`}
                          />
+                         {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date}</p>}
                       </div>
                    </div>
                    <div>
@@ -268,8 +335,9 @@ const CreateEvent = () => {
                            name="time"
                            value={formData.time}
                            onChange={handleChange}
-                           className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
+                           className={`w-full pl-11 pr-4 py-3.5 bg-white border ${errors.time ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]`}
                          />
+                         {errors.time && <p className="text-red-500 text-xs mt-1">{errors.time}</p>}
                       </div>
                    </div>
                    <div>
@@ -283,8 +351,9 @@ const CreateEvent = () => {
                            name="endTime"
                            value={formData.endTime}
                            onChange={handleChange}
-                           className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#E2E8F0] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]"
+                           className={`w-full pl-11 pr-4 py-3.5 bg-white border ${errors.endTime ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all placeholder-[#A0AEC0]`}
                          />
+                         {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
                       </div>
                    </div>
                 </div>
