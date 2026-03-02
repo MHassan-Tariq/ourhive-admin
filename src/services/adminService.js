@@ -93,7 +93,7 @@ const adminService = {
   },
 
   updatePartnerStatus: async (id, status) => {
-    const response = await api.patch(`/api/admin/partners/${id}/status`, { status });
+    const response = await api.patch(`/admin/partners/${id}/status`, { status });
     return response.data;
   },
 

@@ -132,23 +132,36 @@ const PartnerDetail = () => {
     );
   }
 
+  const {
+    orgName = '',
+    orgType = '',
+    legalEntityName = '',
+    registrationNumber = '',
+    headquarters = '',
+    taxStatus = '',
+    companyOverview = '',
+    onboardingScore = 0,
+    status = 'PENDING',
+    agreementHistory = []
+  } = partner;
+
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 pb-12 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div>
            <div className="flex items-center gap-3 mb-2">
               <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">
-                {partner.status}
+                {status}
               </span>
               <span className="text-sm text-[#A0AEC0] font-medium">
-                ID: <span className="font-mono tracking-wide">{id || 'PG-88291'}</span>
+                ID: <span className="font-mono tracking-wide">{id}</span>
               </span>
            </div>
            <h1 className="text-[36px] font-bold text-[#1a202c] leading-tight tracking-tight">
-             {partner.name}
+             {orgName}
            </h1>
            <p className="text-[16px] text-[#718096] mt-1">
-             {partner.subtitle}
+             {orgType}
            </p>
         </div>
         
@@ -170,7 +183,7 @@ const PartnerDetail = () => {
             {actionLoading === 'suspend' ? <Loader2 className="animate-spin" size={16} /> : <PauseCircle size={16} />}
             Suspend
           </button>
-
+ 
           <button 
             onClick={() => handleAction('approve')}
             disabled={actionLoading !== null}
@@ -181,7 +194,7 @@ const PartnerDetail = () => {
           </button>
         </div>
       </div>
-
+ 
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 mb-8">
         {/* Organization Information Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
@@ -194,26 +207,26 @@ const PartnerDetail = () => {
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-12">
                 <div className="space-y-1.5">
                    <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">LEGAL ENTITY NAME</label>
-                   <p className="text-[16px] font-bold text-[#2D3748]">{partner.legalName}</p>
+                   <p className="text-[16px] font-bold text-[#2D3748]">{legalEntityName}</p>
                 </div>
                 <div className="space-y-1.5">
                    <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">REGISTRATION NO.</label>
-                   <p className="text-[16px] font-bold text-[#2D3748]">{partner.registrationNo}</p>
+                   <p className="text-[16px] font-bold text-[#2D3748]">{registrationNumber}</p>
                 </div>
                 <div className="space-y-1.5">
                    <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">HEADQUARTERS</label>
-                   <p className="text-[16px] font-bold text-[#2D3748]">{partner.headquarters}</p>
+                   <p className="text-[16px] font-bold text-[#2D3748]">{headquarters}</p>
                 </div>
                 <div className="space-y-1.5">
                    <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">TAX STATUS</label>
-                   <p className="text-[16px] font-bold text-emerald-600">{partner.taxStatus}</p>
+                   <p className="text-[16px] font-bold text-emerald-600">{taxStatus}</p>
                 </div>
              </div>
-
+ 
              <div className="bg-[#FAF8F5] p-6 rounded-2xl">
                 <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider mb-2 block">COMPANY OVERVIEW</label>
                 <p className="text-[14px] text-[#4A5568] leading-relaxed">
-                   {partner.overview}
+                   {companyOverview}
                 </p>
              </div>
           </div>
@@ -224,14 +237,14 @@ const PartnerDetail = () => {
           <div className="relative z-10">
              <p className="text-[11px] font-bold uppercase tracking-widest text-white/80 mb-2">ONBOARDING SCORE</p>
              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-[48px] font-bold leading-none">{partner.onboardingScore}</span>
+                <span className="text-[48px] font-bold leading-none">{onboardingScore}</span>
                 <span className="text-[18px] text-white/70 font-bold">/ 100</span>
              </div>
              
              <div className="w-full h-1.5 bg-black/20 rounded-full mb-6">
                 <div 
                   className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
-                  style={{ width: `${partner.onboardingScore}%` }}
+                  style={{ width: `${onboardingScore}%` }}
                 ></div>
              </div>
              
@@ -244,7 +257,7 @@ const PartnerDetail = () => {
           <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         </div>
       </div>
-
+ 
       {/* Agreement Details Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
          <div className="p-6 md:p-8 flex items-center gap-3 border-b border-black/5">
@@ -265,8 +278,9 @@ const PartnerDetail = () => {
                  </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                 {partner.agreements.map((agreement) => (
-                    <tr key={agreement.id} className="hover:bg-gray-50 transition-colors">
+                 {agreementHistory && agreementHistory.length > 0 ? (
+                   agreementHistory.map((agreement) => (
+                    <tr key={agreement._id || agreement.id} className="hover:bg-gray-50 transition-colors">
                        <td className="px-6 py-5">
                           <div className="flex items-center gap-2">
                             <FileText size={16} className="text-[#A16D36]" />
@@ -291,7 +305,14 @@ const PartnerDetail = () => {
                           </span>
                        </td>
                     </tr>
-                 ))}
+                   ))
+                 ) : (
+                   <tr>
+                     <td colSpan="4" className="px-6 py-10 text-center text-sm text-gray-400">
+                       No agreement history found.
+                     </td>
+                   </tr>
+                 )}
               </tbody>
            </table>
          </div>
