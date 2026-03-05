@@ -9,7 +9,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Users
+  Users,
+  List,
+  Plus,
+  X
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -26,7 +29,8 @@ const CreateEvent = () => {
     endTime: '',
     status: 'Active',
     requiredVolunteers: 1,
-    partnerId: ''
+    partnerId: '',
+    whatToBring: ['']
   });
   const [partners, setPartners] = useState([]);
   const [errors, setErrors] = useState({});
@@ -52,7 +56,8 @@ const CreateEvent = () => {
               endTime: res.data.endTime ? convertTo24h(res.data.endTime) : '',
               status: res.data.status || 'Pending',
               requiredVolunteers: res.data.requiredVolunteers || 1,
-              partnerId: res.data.partnerId?._id || res.data.partnerId || ''
+              partnerId: res.data.partnerId?._id || res.data.partnerId || '',
+               whatToBring: res.data.whatToBring?.length ? res.data.whatToBring : ['']
             });
             if (res.data.imageurl || res.data.flyerUrl) {
               setPreviewUrl(res.data.imageurl || res.data.flyerUrl);
@@ -140,6 +145,11 @@ const CreateEvent = () => {
         }
       });
 
+      const filteredWhatToBring = formData.whatToBring.filter(item => item.trim() !== '');
+      filteredWhatToBring.forEach(item => {
+        data.append('whatToBring', item);
+      });
+
       if (file) {
         data.append('flyer', file);
       }
@@ -167,6 +177,22 @@ const CreateEvent = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleWhatToBringChange = (index, value) => {
+    const newWhatToBring = [...formData.whatToBring];
+    newWhatToBring[index] = value;
+    setFormData(prev => ({ ...prev, whatToBring: newWhatToBring }));
+  };
+
+  const addWhatToBringInput = () => {
+    setFormData(prev => ({ ...prev, whatToBring: [...prev.whatToBring, ''] }));
+  };
+
+  const removeWhatToBringInput = (index) => {
+    const newWhatToBring = formData.whatToBring.filter((_, i) => i !== index);
+    if (newWhatToBring.length === 0) newWhatToBring.push('');
+    setFormData(prev => ({ ...prev, whatToBring: newWhatToBring }));
   };
 
   const convertTo24h = (time12h) => {
@@ -357,6 +383,61 @@ const CreateEvent = () => {
                       </div>
                    </div>
                 </div>
+             </div>
+          </div>
+
+          {/* What to Bring Card */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
+             <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#A16D36]">
+                   <List size={20} />
+                </div>
+                <div>
+                   <h3 className="text-lg font-bold text-[#2D3748]">What to Bring</h3>
+                   <p className="text-sm text-[#718096]">Items volunteers should bring to the event</p>
+                </div>
+             </div>
+             
+             <div className="space-y-4">
+                {formData.whatToBring.map((item, index) => (
+                  <div key={index} className="flex gap-3">
+                    <div className="relative flex-1">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A0AEC0]">
+                         <List size={16} />
+                      </div>
+                      <input 
+                        type="text"
+                        value={item}
+                        onChange={(e) => handleWhatToBringChange(index, e.target.value)}
+                        placeholder="e.g. Comfortable shoes, Water bottle"
+                        className="w-full pl-11 pr-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-[#A16D36] outline-none transition-all"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      {formData.whatToBring.length > 1 && (
+                        <button 
+                          type="button"
+                          onClick={() => removeWhatToBringInput(index)}
+                          className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                        >
+                          <X size={18} />
+                        </button>
+                      )}
+                      {index === formData.whatToBring.length - 1 && (
+                        <button 
+                          type="button"
+                          onClick={addWhatToBringInput}
+                          className="p-3 text-[#A16D36] hover:bg-amber-50 rounded-xl transition-colors"
+                        >
+                          <Plus size={18} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[12px] text-[#A0AEC0] italic mt-2">
+                   Tip: Add multiple items if needed. Blank items will be ignored.
+                </p>
              </div>
           </div>
         </div>

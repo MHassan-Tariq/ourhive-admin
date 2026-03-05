@@ -179,8 +179,24 @@ const Events = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {events.map((event, idx) => (
-                <tr key={event._id || idx} className="hover:bg-gray-50 transition-colors">
+              {isLoading ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Loader2 className="animate-spin text-[#A16D36]" size={32} />
+                      Loading events...
+                    </div>
+                  </td>
+                </tr>
+              ) : events.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                    No events found
+                  </td>
+                </tr>
+              ) : (
+                events.map((event, idx) => (
+                  <tr key={event._id || idx} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
                       {event.imageurl ? (
@@ -236,7 +252,8 @@ const Events = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
