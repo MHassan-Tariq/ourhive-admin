@@ -30,7 +30,8 @@ const CreateEvent = () => {
     status: 'Active',
     requiredVolunteers: 1,
     partnerId: '',
-    whatToBring: ['']
+    whatToBring: [''],
+    requirements: ['']
   });
   const [partners, setPartners] = useState([]);
   const [errors, setErrors] = useState({});
@@ -57,7 +58,8 @@ const CreateEvent = () => {
               status: res.data.status || 'Pending',
               requiredVolunteers: res.data.requiredVolunteers || 1,
               partnerId: res.data.partnerId?._id || res.data.partnerId || '',
-               whatToBring: res.data.whatToBring?.length ? res.data.whatToBring : ['']
+               whatToBring: res.data.whatToBring?.length ? res.data.whatToBring : [''],
+               requirements: res.data.requirements?.length ? res.data.requirements : ['']
             });
             if (res.data.imageurl || res.data.flyerUrl) {
               setPreviewUrl(res.data.imageurl || res.data.flyerUrl);
@@ -150,6 +152,11 @@ const CreateEvent = () => {
         data.append('whatToBring', item);
       });
 
+      const filteredRequirements = formData.requirements.filter(item => item.trim() !== '');
+      filteredRequirements.forEach(item => {
+        data.append('requirements', item);
+      });
+
       if (file) {
         data.append('flyer', file);
       }
@@ -193,6 +200,22 @@ const CreateEvent = () => {
     const newWhatToBring = formData.whatToBring.filter((_, i) => i !== index);
     if (newWhatToBring.length === 0) newWhatToBring.push('');
     setFormData(prev => ({ ...prev, whatToBring: newWhatToBring }));
+  };
+
+  const handleRequirementsChange = (index, value) => {
+    const newRequirements = [...formData.requirements];
+    newRequirements[index] = value;
+    setFormData(prev => ({ ...prev, requirements: newRequirements }));
+  };
+
+  const addRequirementsInput = () => {
+    setFormData(prev => ({ ...prev, requirements: [...prev.requirements, ''] }));
+  };
+
+  const removeRequirementsInput = (index) => {
+    const newRequirements = formData.requirements.filter((_, i) => i !== index);
+    if (newRequirements.length === 0) newRequirements.push('');
+    setFormData(prev => ({ ...prev, requirements: newRequirements }));
   };
 
   const convertTo24h = (time12h) => {
@@ -414,7 +437,7 @@ const CreateEvent = () => {
                       />
                     </div>
                     <div className="flex gap-2">
-                      {formData.whatToBring.length > 1 && (
+                       {formData.whatToBring.length > 1 && (
                         <button 
                           type="button"
                           onClick={() => removeWhatToBringInput(index)}
@@ -437,6 +460,61 @@ const CreateEvent = () => {
                 ))}
                 <p className="text-[12px] text-[#A0AEC0] italic mt-2">
                    Tip: Add multiple items if needed. Blank items will be ignored.
+                </p>
+             </div>
+          </div>
+
+          {/* Requirements Card */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
+             <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                   <ShieldCheck size={20} />
+                </div>
+                <div>
+                   <h3 className="text-lg font-bold text-[#2D3748]">Volunteer Requirements</h3>
+                   <p className="text-sm text-[#718096]">Specific requirements for volunteers (e.g. Age, Skills)</p>
+                </div>
+             </div>
+             
+             <div className="space-y-4">
+                {formData.requirements.map((item, index) => (
+                  <div key={index} className="flex gap-3">
+                    <div className="relative flex-1">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A0AEC0]">
+                         <Users size={16} />
+                      </div>
+                      <input 
+                        type="text"
+                        value={item}
+                        onChange={(e) => handleRequirementsChange(index, e.target.value)}
+                        placeholder="e.g. Must be 18+, Valid ID required"
+                        className="w-full pl-11 pr-4 py-3 bg-[#F7FAFC] border border-black/5 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      {formData.requirements.length > 1 && (
+                        <button 
+                          type="button"
+                          onClick={() => removeRequirementsInput(index)}
+                          className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                        >
+                          <X size={18} />
+                        </button>
+                      )}
+                      {index === formData.requirements.length - 1 && (
+                        <button 
+                          type="button"
+                          onClick={addRequirementsInput}
+                          className="p-3 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                        >
+                          <Plus size={18} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[12px] text-[#A0AEC0] italic mt-2">
+                   Tip: Clearly state any age limits, certifications, or physical demands.
                 </p>
              </div>
           </div>
