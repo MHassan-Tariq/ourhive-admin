@@ -18,7 +18,8 @@ import {
   Settings,
   LogOut,
   X,
-  Share2
+  Share2,
+  Award
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose, user }) => {
@@ -33,6 +34,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         { name: 'In-Kind Donors', path: '/donations', icon: Package },
         { name: 'Community Partners', path: '/partners', icon: UsersRound },
         { name: 'Events', path: '/events', icon: CalendarDays },
+        { name: 'Badges', path: '/badges', icon: Award },
         { name: 'Social Links', path: '/social-links', icon: Share2 },
       ]
     }

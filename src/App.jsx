@@ -18,6 +18,7 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Donations from './pages/Donations';
 import DonationDetail from './pages/DonationDetail';
+import Badges from './pages/Badges';
 import SocialLinks from './pages/SocialLinks';
 import authService from './services/authService';
 import adminService from './services/adminService';
@@ -102,6 +103,7 @@ const AppContent = () => {
               <Route path="/profile" element={<Profile onUpdate={setUser} />} />
               <Route path="/donations" element={<Donations />} />
               <Route path="/donations/:id" element={<DonationDetail />} />
+              <Route path="/badges" element={<Badges />} />
               <Route path="/social-links" element={<SocialLinks />} />
             </Routes>
           </main>

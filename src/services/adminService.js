@@ -195,6 +195,40 @@ const adminService = {
     const response = await api.patch('/admin/profile/password', data);
     return response.data;
   },
+
+  // Badges
+  getBadges: async () => {
+    const response = await api.get('/admin/badges');
+    return response.data;
+  },
+
+  getBadge: async (id) => {
+    const response = await api.get(`/admin/badges/${id}`);
+    return response.data;
+  },
+
+  createBadge: async (formData) => {
+    const response = await api.post('/admin/badges', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  updateBadge: async (id, formData) => {
+    const response = await api.patch(`/admin/badges/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteBadge: async (id) => {
+    const response = await api.delete(`/admin/badges/${id}`);
+    return response.data;
+  },
 };
 
 export default adminService;
