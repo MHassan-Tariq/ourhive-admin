@@ -26,6 +26,7 @@ const ParticipantDetail = () => {
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isApprovingDetailed, setIsApprovingDetailed] = useState(false);
+  const [isRevokingDetailed, setIsRevokingDetailed] = useState(false);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -51,7 +52,12 @@ const ParticipantDetail = () => {
     setIsDeactivating(true);
     try {
       await adminService.deactivateParticipant(id);
-      setParticipant(prev => ({ ...prev, accountStatus: 'deactivated' }));
+      setParticipant(prev => ({ 
+        ...prev, 
+        accountStatus: 'INACTIVE',
+        userId: { ...prev.userId, isApproved: false },
+        intakeStatus: { ...prev.intakeStatus, status: 'Action Required' }
+      }));
       alert('Participant deactivated successfully.');
     } catch (err) {
       alert('Failed to deactivate participant.');
@@ -97,6 +103,25 @@ const ParticipantDetail = () => {
     }
   };
 
+  const handleRevokeDetailed = async () => {
+    if (!window.confirm('Are you sure you want to revoke detailed approval?')) return;
+    setIsRevokingDetailed(true);
+    try {
+      await adminService.revokeDetailedIntake(id);
+      setParticipant(prev => ({ 
+        ...prev, 
+        intakeStatus: { ...prev.intakeStatus, status: 'Action Required' },
+        accountStatus: 'PENDING'
+      }));
+      alert('Detailed intake approval revoked.');
+    } catch (err) {
+      alert('Failed to revoke detailed intake approval.');
+      console.error(err);
+    } finally {
+      setIsRevokingDetailed(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[600px] text-gray-400 gap-4">
@@ -135,19 +160,16 @@ const ParticipantDetail = () => {
           <span>Back to Participants</span>
         </button>
         <div className="flex flex-wrap gap-3 w-full md:w-auto justify-end">
-          {participant.accountStatus !== 'deactivated' && (
+          {participant.userId?.isApproved ? (
             <button 
               onClick={handleDeactivate}
               disabled={isDeactivating}
-              className="flex-1 md:flex-none px-6 py-2.5 border border-red-100 text-red-500 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 bg-white"
+              className="flex-1 md:flex-none px-6 py-2.5 bg-red-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50"
             >
               {isDeactivating ? <Loader2 className="animate-spin" size={16} /> : <ShieldAlert size={16} />}
-              Deactivate
+              Deactivate Account
             </button>
-          )}
-          
-          
-          {(!participant.userId?.isApproved || ['INACTIVE', 'IN PROGRESS'].includes(participant.accountStatus)) && (
+          ) : (
             <button 
               onClick={handleApproveAccount}
               disabled={isApproving}
@@ -158,14 +180,23 @@ const ParticipantDetail = () => {
             </button>
           )}
 
-          {['Pending Review', 'Action Required'].includes(participant.intakeStatus?.status) && participant.accountStatus !== 'ACTIVE' && (
+          {participant.intakeStatus?.status === 'Completed' ? (
+            <button 
+              onClick={handleRevokeDetailed}
+              disabled={isRevokingDetailed}
+              className="flex-1 md:flex-none px-6 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 disabled:opacity-50"
+            >
+              {isRevokingDetailed ? <Loader2 className="animate-spin" size={16} /> : <ShieldAlert size={16} />}
+              Revoke Intake Approval
+            </button>
+          ) : (
             <button 
               onClick={handleApproveDetailed}
               disabled={isApprovingDetailed}
               className="flex-1 md:flex-none px-6 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50"
             >
               {isApprovingDetailed ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
-              Approve Detailed
+              Approve Intake
             </button>
           )}
         </div>
