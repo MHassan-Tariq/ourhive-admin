@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Heart, 
@@ -14,6 +14,19 @@ import {
 } from 'lucide-react';
 import adminService from '../services/adminService';
 import authService from '../services/authService';
+
+const formatRelativeTime = (date) => {
+  if (!date) return 'Just now';
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - new Date(date)) / 1000);
+  
+  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 87400)}d ago`;
+  
+  return new Date(date).toLocaleDateString();
+};
 
 const StatCard = ({ icon: Icon, label, value, trend, trendValue, color, isLoading }) => {
   const colorMap = {
@@ -135,42 +148,38 @@ const Dashboard = () => {
     { label: 'Active Campaigns', value: statsData?.stats?.activeCampaigns || '0', trend: 'up', trendValue: 'Stable', icon: Megaphone, color: 'red' },
   ];
 
-  const activities = [
-    {
-      icon: Users,
-      title: 'New Participant Intake',
-      description: 'Jordan Smith has completed the registration for the "Urban Garden" initiative.',
-      time: '12 mins ago',
-      color: 'orange',
-      actions: [
-        { label: 'Approve Profile', type: 'primary' },
-        { label: 'Details', type: 'secondary' }
-      ]
-    },
-    {
-      icon: Clock,
-      title: 'New Volunteer Hours Logged',
-      description: 'Maria Garcia logged 4.5 hours for "Community Kitchen" support.',
-      time: '2 hours ago',
-      color: 'blue'
-    },
-    {
-      icon: Gift,
-      title: 'New In-Kind Donation Received',
-      description: 'Local Supplies Co. donated 20x Winter Kits to the shelter program.',
-      time: '5 hours ago',
-      status: 'Verified by Logistics Team',
-      color: 'green'
-    },
-    {
-      icon: Handshake,
-      title: 'New Partner Registration',
-      description: 'Nexus Youth Center has applied to become a Community Partner for 2024.',
-      time: 'Yesterday',
-      status: 'UNDER REVIEW',
-      color: 'yellow'
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'New Participant Intake':
+      case 'New Registration':
+        return { icon: Users, color: 'orange' };
+      case 'New Volunteer Interest':
+      case 'Volunteer Hours Logged':
+        return { icon: Heart, color: 'blue' };
+      case 'New Partner Registration':
+        return { icon: Handshake, color: 'yellow' };
+      case 'Submission Approved':
+      case 'Profile Updated':
+        return { icon: FileCheck, color: 'green' };
+      case 'New In-Kind Donation':
+      case 'New Monetary Donation':
+        return { icon: Gift, color: 'green' };
+      default:
+        return { icon: Clock, color: 'blue' };
     }
-  ];
+  };
+
+  const formattedActivities = statsData?.recentActivity?.map(activity => {
+    const { icon, color } = getActivityIcon(activity.type);
+    return {
+      icon,
+      color,
+      title: activity.type,
+      description: activity.content,
+      time: formatRelativeTime(activity.createdAt),
+      // We could add actions here based on type if needed
+    };
+  }) || [];
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -199,9 +208,17 @@ const Dashboard = () => {
             <button className="text-xs font-bold text-primary hover:text-primary-light">View All</button>
           </div>
           <div className="flex flex-col gap-8">
-            {activities.map((activity, idx) => (
-              <ActivityItem key={idx} {...activity} />
-            ))}
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <Loader2 className="animate-spin text-primary" size={32} />
+              </div>
+            ) : formattedActivities.length > 0 ? (
+              formattedActivities.map((activity, idx) => (
+                <ActivityItem key={idx} {...activity} />
+              ))
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-8">No recent activity found.</p>
+            )}
           </div>
         </section>
 

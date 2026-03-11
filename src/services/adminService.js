@@ -34,6 +34,16 @@ const adminService = {
     return response.data;
   },
 
+  approveParticipant: async (id, isApproved) => {
+    const response = await api.patch(`/admin/participants/${id}/approve`, { isApproved });
+    return response.data;
+  },
+
+  approveDetailedIntake: async (id) => {
+    const response = await api.patch(`/admin/participants/${id}/approve-detailed`);
+    return response.data;
+  },
+
   // Volunteers
   getVolunteers: async (params = {}) => {
     const response = await api.get('/admin/volunteers', { params });

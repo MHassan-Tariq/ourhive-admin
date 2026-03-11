@@ -6,7 +6,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -61,14 +64,26 @@ const Participants = () => {
     return `px-3 py-1 rounded-full text-xs font-bold border ${styles[type] || 'bg-gray-100 text-gray-700 border-gray-200'}`;
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      active: 'bg-green-500',
-      stable: 'bg-blue-500',
-      urgent: 'bg-red-500',
-      pending: 'bg-orange-500',
+  const getIntakeStatusBadge = (status) => {
+    const styles = {
+      'Pending Review': 'bg-orange-100 text-orange-700 border-orange-200',
+      'Completed': 'bg-green-100 text-green-700 border-green-200',
+      'Rejected': 'bg-red-100 text-red-700 border-red-200',
+      'Action Required': 'bg-gray-100 text-gray-700 border-gray-200',
     };
-    return colors[status?.toLowerCase()] || 'bg-gray-400';
+    return `px-3 py-1 rounded-full text-xs font-bold border ${styles[status] || 'bg-gray-100 text-gray-700 border-gray-200'}`;
+  };
+
+  const getStatusColor = (status) => {
+    const s = (status || 'IN PROGRESS').toUpperCase();
+    const colors = {
+      'ACTIVE': 'bg-green-500',
+      'STABLE': 'bg-blue-500',
+      'URGENT': 'bg-red-500',
+      'PENDING': 'bg-orange-500',
+      'IN PROGRESS': 'bg-orange-500',
+    };
+    return colors[s] || 'bg-gray-400';
   };
 
   const handleExport = async () => {
@@ -88,6 +103,22 @@ const Participants = () => {
       setError('Failed to export participants. Please try again.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to deactivate this participant?')) return;
+    
+    try {
+      await adminService.deactivateParticipant(id);
+      setParticipants(prev => prev.map(p => 
+        p._id === id ? { ...p, accountStatus: 'INACTIVE' } : p
+      ));
+      alert('Participant deactivated successfully.');
+    } catch (err) {
+      alert('Failed to deactivate participant.');
+      console.error(err);
     }
   };
 
@@ -142,7 +173,7 @@ const Participants = () => {
         <div className="overflow-x-auto min-h-[400px]">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 gap-4">
-              <Loader2 className="animate-spin" size={40} />
+              <Loader2 className="animate-spin text-primary" size={40} />
               <p className="text-sm font-medium">Loading participants...</p>
             </div>
           ) : participants.length === 0 ? (
@@ -150,15 +181,15 @@ const Participants = () => {
               <p className="text-sm font-medium">No participants found matching your criteria.</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
                 <tr className="bg-gray-50/50">
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-bottom border-black/5">NAME</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">HOUSING STATUS</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">LOCATION</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">INTAKE COMPLETION</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">OVERALL STATUS</th>
-                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">ACTIONS</th>
+                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">INTAKE STATUS</th>
+                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider center">OVERALL STATUS</th>
+                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">ACTIONS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -186,15 +217,9 @@ const Participants = () => {
                       <span className="text-sm text-gray-600 font-medium">{person.residenceArea || 'N/A'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 max-w-[100px] h-1.5 bg-gray-100 rounded-full">
-                          <div 
-                            className="h-full bg-primary rounded-full transition-all duration-500" 
-                            style={{ width: `${(person.intakeStep || 1) * 20}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-xs font-bold text-gray-700">{(person.intakeStep || 1) * 20}%</span>
-                      </div>
+                      <span className={getIntakeStatusBadge(person.intakeStatus?.status || 'Action Required')}>
+                        {person.intakeStatus?.status || 'Action Required'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -202,10 +227,16 @@ const Participants = () => {
                         <span className="text-sm font-bold text-gray-700 capitalize">{person.accountStatus || 'Pending'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={(e) => { e.stopPropagation(); }} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-                        <MoreVertical size={18} />
-                      </button>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button 
+                          onClick={() => navigate(`/participants/${person._id}`)} 
+                          className="p-2 text-gray-400 hover:text-primary rounded-lg hover:bg-gray-100 transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

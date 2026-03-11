@@ -9,6 +9,7 @@ import {
   Download, 
   MoreVertical,
   Edit2,
+  CheckCircle2,
   Loader2,
   AlertCircle,
   ShieldAlert
@@ -23,6 +24,8 @@ const ParticipantDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDeactivating, setIsDeactivating] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isApprovingDetailed, setIsApprovingDetailed] = useState(false);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -58,6 +61,42 @@ const ParticipantDetail = () => {
     }
   };
 
+  const handleApproveAccount = async () => {
+    setIsApproving(true);
+    try {
+      await adminService.approveParticipant(id, true);
+      setParticipant(prev => ({ 
+        ...prev, 
+        userId: { ...prev.userId, isApproved: true },
+        accountStatus: 'PENDING'
+      }));
+      alert('Participant account approved successfully.');
+    } catch (err) {
+      alert('Failed to approve participant account.');
+      console.error(err);
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleApproveDetailed = async () => {
+    setIsApprovingDetailed(true);
+    try {
+      await adminService.approveDetailedIntake(id);
+      setParticipant(prev => ({ 
+        ...prev, 
+        intakeStatus: { ...prev.intakeStatus, status: 'Completed' },
+        accountStatus: 'ACTIVE'
+      }));
+      alert('Detailed intake approved successfully.');
+    } catch (err) {
+      alert('Failed to approve detailed intake.');
+      console.error(err);
+    } finally {
+      setIsApprovingDetailed(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[600px] text-gray-400 gap-4">
@@ -87,18 +126,55 @@ const ParticipantDetail = () => {
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 pb-12">
-      <button 
-        onClick={() => navigate('/participants')} 
-        className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary transition-colors mb-8"
-      >
-        <ChevronLeft size={20} />
-        <span>Back to Participants</span>
-      </button>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+        <button 
+          onClick={() => navigate('/participants')} 
+          className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary transition-colors"
+        >
+          <ChevronLeft size={20} />
+          <span>Back to Participants</span>
+        </button>
+        <div className="flex flex-wrap gap-3 w-full md:w-auto justify-end">
+          {participant.accountStatus !== 'deactivated' && (
+            <button 
+              onClick={handleDeactivate}
+              disabled={isDeactivating}
+              className="flex-1 md:flex-none px-6 py-2.5 border border-red-100 text-red-500 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 bg-white"
+            >
+              {isDeactivating ? <Loader2 className="animate-spin" size={16} /> : <ShieldAlert size={16} />}
+              Deactivate
+            </button>
+          )}
+          
+          
+          {(!participant.userId?.isApproved || ['INACTIVE', 'IN PROGRESS'].includes(participant.accountStatus)) && (
+            <button 
+              onClick={handleApproveAccount}
+              disabled={isApproving}
+              className="flex-1 md:flex-none px-6 py-2.5 bg-green-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20 disabled:opacity-50"
+            >
+              {isApproving ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
+              Approve Participant
+            </button>
+          )}
+
+          {['Pending Review', 'Action Required'].includes(participant.intakeStatus?.status) && participant.accountStatus !== 'ACTIVE' && (
+            <button 
+              onClick={handleApproveDetailed}
+              disabled={isApprovingDetailed}
+              className="flex-1 md:flex-none px-6 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50"
+            >
+              {isApprovingDetailed ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
+              Approve Detailed
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-6 md:p-8 mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="flex items-center gap-6">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-2xl border-4 border-white shadow-lg overflow-hidden">
+        <div className="flex flex-col md:flex-row justify-start items-center gap-6">
+          <div className="flex items-center gap-6 w-full">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-2xl border-4 border-white shadow-lg overflow-hidden shrink-0">
               {participant.userId?.profilePictureUrl ? (
                 <img src={participant.userId.profilePictureUrl} alt={participant.userId?.firstName || 'User'} className="w-full h-full object-cover" />
               ) : (
@@ -110,35 +186,29 @@ const ParticipantDetail = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                   {participant.privacyMaskedName || (participant.userId ? `${participant.userId.firstName || ''} ${participant.userId.lastName || ''}`.trim() : 'Unknown User')}
                 </h1>
-                <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
-                  participant.accountStatus === 'active' 
-                    ? 'bg-green-100 text-green-700 border-green-200' 
-                    : 'bg-red-100 text-red-700 border-red-200'
-                }`}>
-                  {participant.accountStatus || 'Pending'}
-                </span>
+                {(() => {
+                  const status = (participant.accountStatus || 'IN PROGRESS').toUpperCase();
+                  const styles = {
+                    'ACTIVE': 'bg-green-100 text-green-700 border-green-200',
+                    'STABLE': 'bg-blue-100 text-blue-700 border-blue-200',
+                    'IN PROGRESS': 'bg-orange-100 text-orange-700 border-orange-200',
+                    'PENDING': 'bg-orange-100 text-orange-700 border-orange-200',
+                    'URGENT': 'bg-red-100 text-red-700 border-red-200',
+                    'INACTIVE': 'bg-gray-100 text-gray-700 border-gray-200',
+                    'DEACTIVATED': 'bg-gray-100 text-gray-700 border-gray-200',
+                  };
+                  return (
+                    <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border ${styles[status] || styles['IN PROGRESS']}`}>
+                      {status}
+                    </span>
+                  );
+                })()}
               </div>
               <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
                 <MapPin size={16} className="text-primary" />
                 {participant.residenceArea || 'Unknown Location'} • ID: {participant._id.slice(-6).toUpperCase()}
               </p>
             </div>
-          </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            {participant.accountStatus !== 'deactivated' && (
-              <button 
-                onClick={handleDeactivate}
-                disabled={isDeactivating}
-                className="flex-1 md:flex-none px-6 py-2.5 border border-red-100 text-red-500 rounded-xl text-sm font-bold hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-              >
-                {isDeactivating ? <Loader2 className="animate-spin" size={16} /> : <ShieldAlert size={16} />}
-                Deactivate
-              </button>
-            )}
-            <button className="flex-1 md:flex-none px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-primary-light transition-colors shadow-lg shadow-primary/20">
-              <Edit2 size={16} />
-              Edit Profile
-            </button>
           </div>
         </div>
       </div>
@@ -229,11 +299,17 @@ const ParticipantDetail = () => {
                         <FileText size={20} />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-gray-800 text-left">{doc.type || 'Document'}</h4>
-                        <span className="text-[11px] text-gray-400 font-medium">Uploaded: {new Date(participant.updatedAt).toLocaleDateString()}</span>
+                        <h4 className="text-sm font-bold text-gray-800 text-left">{doc.documentType || 'Document'}</h4>
+                        <span className="text-[11px] text-gray-400 font-medium">Uploaded: {new Date(doc.uploadedAt || participant.updatedAt).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-primary transition-colors">
+                    <a 
+                      href={doc.fileUrl?.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${doc.fileUrl}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="p-2 text-gray-400 hover:text-primary transition-colors"
+                      download
+                    >
                       <Download size={18} />
                     </a>
                   </div>
