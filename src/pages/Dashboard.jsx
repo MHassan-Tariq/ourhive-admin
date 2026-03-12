@@ -10,7 +10,9 @@ import {
   TrendingDown,
   Clock,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import adminService from '../services/adminService';
 import authService from '../services/authService';
@@ -121,6 +123,8 @@ const Dashboard = () => {
   const [statsData, setStatsData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
   const user = authService.getCurrentUser();
 
   useEffect(() => {
@@ -177,9 +181,14 @@ const Dashboard = () => {
       title: activity.type,
       description: activity.content,
       time: formatRelativeTime(activity.createdAt),
-      // We could add actions here based on type if needed
     };
   }) || [];
+
+  const totalPages = Math.ceil(formattedActivities.length / ITEMS_PER_PAGE);
+  const paginatedActivities = formattedActivities.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -201,8 +210,8 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-black/5 p-6 h-fit">
+      <div className="grid grid-cols-1 gap-6">
+        <section className="bg-white rounded-2xl shadow-sm border border-black/5 p-6 h-fit">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-lg font-bold text-gray-800">Recent Activity Feed</h2>
             <button className="text-xs font-bold text-primary hover:text-primary-light">View All</button>
@@ -212,28 +221,49 @@ const Dashboard = () => {
               <div className="flex justify-center p-8">
                 <Loader2 className="animate-spin text-primary" size={32} />
               </div>
-            ) : formattedActivities.length > 0 ? (
-              formattedActivities.map((activity, idx) => (
-                <ActivityItem key={idx} {...activity} />
-              ))
+            ) : paginatedActivities.length > 0 ? (
+              <>
+                <div className="flex flex-col gap-8">
+                  {paginatedActivities.map((activity, idx) => (
+                    <ActivityItem key={idx} {...activity} />
+                  ))}
+                </div>
+                
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-4">
+                    <p className="text-xs text-gray-500 font-medium">
+                      Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, formattedActivities.length)} of {formattedActivities.length} activities
+                    </p>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className={`p-2 rounded-lg border transition-all ${
+                          currentPage === 1 
+                            ? 'text-gray-300 border-gray-100 cursor-not-allowed' 
+                            : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-95'
+                        }`}
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`p-2 rounded-lg border transition-all ${
+                          currentPage === totalPages 
+                            ? 'text-gray-300 border-gray-100 cursor-not-allowed' 
+                            : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-95'
+                        }`}
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <p className="text-sm text-gray-500 text-center py-8">No recent activity found.</p>
             )}
-          </div>
-        </section>
-
-        <section className="bg-primary text-white rounded-2xl p-8 relative overflow-hidden shadow-xl shadow-primary/20 flex flex-col h-fit">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-base font-semibold">Active Campaign Goal</h3>
-            <TrendingUp size={24} className="opacity-30" />
-          </div>
-          <span className="text-[10px] font-bold tracking-widest opacity-80 mb-6 uppercase">WINTER WARMTH DRIVE</span>
-          <div className="mb-4">
-            <span className="text-2xl font-bold block mb-4">$14,250 / $20,000</span>
-            <div className="h-2 bg-white/20 rounded-full mb-3">
-              <div className="h-full bg-white rounded-full transition-all duration-500" style={{ width: '71%' }}></div>
-            </div>
-            <p className="text-[11px] font-medium opacity-90">71% reached • 8 days remaining</p>
           </div>
         </section>
       </div>
