@@ -173,6 +173,17 @@ const adminService = {
     return response.data;
   },
 
+  // Monetary Donations
+  getMonetaryDonations: async (params = {}) => {
+    const response = await api.get('/admin/donations/monetary', { params });
+    return response.data;
+  },
+
+  approveMonetaryDonation: async (id, data = {}) => {
+    const response = await api.patch(`/admin/donations/monetary/${id}/approve`, data);
+    return response.data;
+  },
+
   // Finances
   getFinancials: async () => {
     const response = await api.get('/admin/finances');

@@ -31,7 +31,8 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         { name: 'Participants', path: '/participants', icon: Users },
         { name: 'Volunteers', path: '/volunteers', icon: Heart },
         { name: 'Sponsors', path: '/sponsors', icon: Handshake },
-        { name: 'In-Kind Donors', path: '/donations', icon: Package },
+        { name: 'In-Kind Donations', path: '/donations', icon: Package },
+        { name: 'Monetary Donations', path: '/donations/monetary', icon: CircleDollarSign },
         { name: 'Community Partners', path: '/partners', icon: UsersRound },
         { name: 'Events', path: '/events', icon: CalendarDays },
         { name: 'Badges', path: '/badges', icon: Award },
@@ -90,6 +91,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
                 <NavLink 
                   key={item.path} 
                   to={item.path} 
+                  end={item.path === '/donations' || item.path === '/events'}
                   onClick={() => window.innerWidth < 1024 && onClose()}
                   className={({ isActive }) => `
                     flex items-center px-3 py-2.5 rounded-xl transition-all mb-0.5 text-sm font-medium

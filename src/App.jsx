@@ -20,6 +20,7 @@ import Donations from './pages/Donations';
 import DonationDetail from './pages/DonationDetail';
 import Badges from './pages/Badges';
 import SocialLinks from './pages/SocialLinks';
+import MonetaryDonations from './pages/MonetaryDonations';
 import authService from './services/authService';
 import adminService from './services/adminService';
 
@@ -102,6 +103,7 @@ const AppContent = () => {
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile onUpdate={setUser} />} />
               <Route path="/donations" element={<Donations />} />
+              <Route path="/donations/monetary" element={<MonetaryDonations />} />
               <Route path="/donations/:id" element={<DonationDetail />} />
               <Route path="/badges" element={<Badges />} />
               <Route path="/social-links" element={<SocialLinks />} />
