@@ -9,10 +9,13 @@ import {
   PlusCircle,
   MapPin,
   Pencil,
-  Trash2
+  Trash2,
+  Check,
+  X as CloseIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
+import toast from 'react-hot-toast';
 
 const Events = () => {
   const navigate = useNavigate();
@@ -23,6 +26,12 @@ const Events = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  
+  // Rejection Modal State
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectingEventId, setRejectingEventId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Initial mock data removed to focus on live data
   const mockEvents = [];
@@ -94,11 +103,28 @@ const Events = () => {
     if (window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
       try {
         await adminService.deleteEvent(id);
+        toast.success('Event deleted successfully');
         fetchEvents(); // Refresh the list
       } catch (err) {
-        alert('Failed to delete event. Please try again.');
+        toast.error('Failed to delete event');
         console.error(err);
       }
+    }
+  };
+
+  const handleStatusUpdate = async (id, status, reason = '') => {
+    setIsProcessing(true);
+    try {
+      await adminService.updateEventStatus(id, status, reason);
+      toast.success(`Event ${status === 'Confirmed' ? 'approved' : 'rejected'} successfully`);
+      setIsRejectModalOpen(false);
+      setRejectionReason('');
+      fetchEvents();
+    } catch (err) {
+      toast.error(err.response?.data?.message || `Failed to update event status`);
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -242,6 +268,27 @@ const Events = () => {
                       >
                         <Pencil size={18} />
                       </button>
+                      {event.status === 'Pending' && (
+                        <>
+                          <button 
+                            onClick={() => handleStatusUpdate(event._id, 'Confirmed')}
+                            className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors px-3 py-1 rounded-lg text-xs font-bold"
+                            title="Approve Event"
+                          >
+                            Approve
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setRejectingEventId(event._id);
+                              setIsRejectModalOpen(true);
+                            }}
+                            className="bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors px-3 py-1 rounded-lg text-xs font-bold"
+                            title="Reject Event"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
                       <button 
                         onClick={() => handleDelete(event._id)} 
                         className="text-rose-400 hover:text-rose-600 transition-colors p-2"
@@ -257,6 +304,49 @@ const Events = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Rejection Modal */}
+        {isRejectModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl border border-black/5 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-800">Reject Event</h3>
+                <button 
+                  onClick={() => setIsRejectModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
+                >
+                  <CloseIcon size={20} />
+                </button>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+                  Please provide a reason for rejecting this event. This will be shared with the organizer.
+                </p>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="e.g. Missing required details, inappropriate content, etc."
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none transition-all resize-none min-h-[120px]"
+                ></textarea>
+              </div>
+              <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+                <button
+                  onClick={() => setIsRejectModalOpen(false)}
+                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleStatusUpdate(rejectingEventId, 'Rejected', rejectionReason)}
+                  disabled={!rejectionReason.trim() || isProcessing}
+                  className="px-6 py-2 bg-rose-500 text-white rounded-xl text-sm font-bold hover:bg-rose-600 disabled:opacity-50 transition-all shadow-lg shadow-rose-500/20"
+                >
+                  {isProcessing ? <Loader2 size={18} className="animate-spin" /> : 'Reject Event'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {!isLoading && events.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-[#FAF8F5] border-t border-gray-100 gap-4">

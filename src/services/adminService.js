@@ -167,6 +167,11 @@ const adminService = {
     return response.data;
   },
 
+  updateEventStatus: async (id, status, rejectionReason = '') => {
+    const response = await api.patch(`/admin/opportunities/${id}/status`, { status, rejectionReason });
+    return response.data;
+  },
+
   // Donations
   getDonations: async (params = {}) => {
     const response = await api.get('/admin/in-kind-donations', { params });

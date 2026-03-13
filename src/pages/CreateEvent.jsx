@@ -12,7 +12,8 @@ import {
   Users,
   List,
   Plus,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -268,6 +269,22 @@ const CreateEvent = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
         <div className="space-y-8">
+          {formData.status === 'Rejected' && formData.rejectionReason && (
+            <div className="bg-rose-50 border border-rose-100 rounded-3xl p-6 flex gap-4 animate-in slide-in-from-top-2 duration-300">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertCircle size={24} />
+              </div>
+              <div>
+                <h3 className="text-rose-900 font-bold mb-1">Event Rejected</h3>
+                <p className="text-rose-700 text-sm leading-relaxed">
+                  Reason: <span className="font-semibold italic">"{formData.rejectionReason}"</span>
+                </p>
+                <p className="text-rose-600/60 text-[12px] mt-2 italic">
+                  Please address the feedback above before re-submitting for approval.
+                </p>
+              </div>
+            </div>
+          )}
           {/* Event Information Card */}
           <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
              <div className="flex items-center gap-3 mb-6">
