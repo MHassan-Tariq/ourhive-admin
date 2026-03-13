@@ -14,6 +14,16 @@ const adminService = {
     return response.data;
   },
 
+  getAllUsers: async (params = {}) => {
+    const response = await api.get('/admin/users', { params });
+    return response.data;
+  },
+
+  updateUserRole: async (userId, role) => {
+    const response = await api.patch(`/admin/users/${userId}/role`, { role });
+    return response.data;
+  },
+
   exportParticipants: async () => {
     const response = await api.get('/admin/participants/export', { responseType: 'blob' });
     return response.data;
@@ -65,8 +75,8 @@ const adminService = {
     return response.data;
   },
 
-  addVolunteerHours: async (id, hours) => {
-    const response = await api.patch(`/admin/volunteer/add-hours/${id}`, { hours });
+  addVolunteerHours: async (id, data) => {
+    const response = await api.patch(`/admin/volunteer/add-hours/${id}`, data);
     return response.data;
   },
 
@@ -173,9 +183,19 @@ const adminService = {
     return response.data;
   },
 
+  getPartnerPickups: async (params = {}) => {
+    const response = await api.get('/admin/partner-pickups', { params });
+    return response.data;
+  },
+
   // Monetary Donations
   getMonetaryDonations: async (params = {}) => {
     const response = await api.get('/admin/donations/monetary', { params });
+    return response.data;
+  },
+
+  getMonetaryDonationDetail: async (id) => {
+    const response = await api.get(`/admin/donations/monetary/${id}`);
     return response.data;
   },
 
@@ -201,8 +221,16 @@ const adminService = {
     return response.data;
   },
 
-  updateAgreement: async (data) => {
-    const response = await api.post('/admin/settings/agreement', data);
+
+  updateAgreement: async (formData) => {
+    const response = await api.post('/admin/settings/agreement', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+
+  getAgreementHistory: async (params = {}) => {
+    const response = await api.get('/admin/settings/agreement/history', { params });
     return response.data;
   },
 
@@ -223,8 +251,8 @@ const adminService = {
   },
 
   // Badges
-  getBadges: async () => {
-    const response = await api.get('/admin/badges');
+  getBadges: async (params = {}) => {
+    const response = await api.get('/admin/badges', { params });
     return response.data;
   },
 

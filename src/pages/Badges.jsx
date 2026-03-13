@@ -22,6 +22,9 @@ const Badges = () => {
   const [editingBadge, setEditingBadge] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -35,9 +38,11 @@ const Badges = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await adminService.getBadges();
+      const response = await adminService.getBadges({ page, limit: 10 });
       if (response && response.data) {
         setBadges(response.data);
+        setTotalPages(response.pages || 1);
+        setTotalCount(response.total || 0);
       }
     } catch (err) {
       setError('Failed to load badges. Please try again.');
@@ -49,7 +54,7 @@ const Badges = () => {
 
   useEffect(() => {
     fetchBadges();
-  }, []);
+  }, [page]);
 
   const handleOpenModal = (badge = null) => {
     if (badge) {
@@ -257,6 +262,43 @@ const Badges = () => {
             </tbody>
           </table>
         </div>
+        
+        {!isLoading && badges.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-[#FAF8F5] gap-4">
+            <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
+              Showing {(page - 1) * 10 + 1} to {Math.min(page * 10, totalCount)} of {totalCount} badges
+            </span>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
+              <button 
+                disabled={page === 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                className="px-4 py-2 text-sm font-bold bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-full border border-gray-200"
+              >
+                Previous
+              </button>
+              {[...Array(totalPages)].map((_, i) => (
+                <button 
+                  key={i + 1}
+                  onClick={() => setPage(i + 1)}
+                  className={`min-w-[36px] h-9 px-2 rounded-full text-sm font-bold transition-all ${
+                    page === i + 1 
+                      ? 'bg-[#A16D36] text-white shadow-sm' 
+                      : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button 
+                disabled={page === totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                className="px-4 py-2 text-sm font-bold bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-full border border-gray-200"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal */}

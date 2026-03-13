@@ -31,7 +31,8 @@ const CreateEvent = () => {
     requiredVolunteers: 1,
     partnerId: '',
     whatToBring: [''],
-    requirements: ['']
+    requirements: [''],
+    rejectionReason: ''
   });
   const [partners, setPartners] = useState([]);
   const [errors, setErrors] = useState({});
@@ -59,7 +60,8 @@ const CreateEvent = () => {
               requiredVolunteers: res.data.requiredVolunteers || 1,
               partnerId: res.data.partnerId?._id || res.data.partnerId || '',
                whatToBring: res.data.whatToBring?.length ? res.data.whatToBring : [''],
-               requirements: res.data.requirements?.length ? res.data.requirements : ['']
+               requirements: res.data.requirements?.length ? res.data.requirements : [''],
+               rejectionReason: res.data.rejectionReason || ''
             });
             if (res.data.imageurl || res.data.flyerUrl) {
               setPreviewUrl(res.data.imageurl || res.data.flyerUrl);
@@ -134,7 +136,7 @@ const CreateEvent = () => {
       // Only send fields that are editable
       const editableFields = [
         'title', 'description', 'location', 'date', 'time', 
-        'endTime', 'requiredVolunteers', 'status', 'partnerId'
+        'endTime', 'requiredVolunteers', 'status', 'partnerId', 'rejectionReason'
       ];
 
       editableFields.forEach(key => {

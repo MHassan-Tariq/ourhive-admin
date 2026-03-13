@@ -19,7 +19,8 @@ import {
   LogOut,
   X,
   Share2,
-  Award
+  Award,
+  Truck
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose, user }) => {
@@ -33,7 +34,8 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         { name: 'Sponsors', path: '/sponsors', icon: Handshake },
         { name: 'In-Kind Donations', path: '/donations', icon: Package },
         { name: 'Monetary Donations', path: '/donations/monetary', icon: CircleDollarSign },
-        { name: 'Community Partners', path: '/partners', icon: UsersRound },
+         { name: 'Community Partners', path: '/partners', icon: UsersRound },
+        { name: 'Partner Pickups', path: '/partners/pickups', icon: Truck },
         { name: 'Events', path: '/events', icon: CalendarDays },
         { name: 'Badges', path: '/badges', icon: Award },
         { name: 'Social Links', path: '/social-links', icon: Share2 },
@@ -91,7 +93,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
                 <NavLink 
                   key={item.path} 
                   to={item.path} 
-                  end={item.path === '/donations' || item.path === '/events'}
+                  end={['/', '/donations', '/events', '/partners'].includes(item.path)}
                   onClick={() => window.innerWidth < 1024 && onClose()}
                   className={({ isActive }) => `
                     flex items-center px-3 py-2.5 rounded-xl transition-all mb-0.5 text-sm font-medium

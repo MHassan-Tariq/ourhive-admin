@@ -76,6 +76,7 @@ const Profile = ({ onUpdate }) => {
       const formData = new FormData();
       formData.append('firstName', personalForm.firstName);
       formData.append('lastName', personalForm.lastName);
+      formData.append('email', personalForm.email);
       formData.append('phone', personalForm.phone);
       
       if (imageFile) {
@@ -224,16 +225,17 @@ const Profile = ({ onUpdate }) => {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                 <div>
+                  <div>
                     <label className="block text-[14px] font-bold text-[#2D3748] mb-2">Email Address</label>
                     <input 
                       type="email"
                       value={personalForm.email}
-                      disabled
-                      className="w-full px-4 py-3.5 bg-gray-100 border border-[#E2E8F0] rounded-xl text-[15px] text-gray-500 cursor-not-allowed"
+                      required
+                      onChange={(e) => setPersonalForm({...personalForm, email: e.target.value})}
+                      className="w-full px-4 py-3.5 bg-[#FAF8F5] border border-[#E2E8F0] rounded-xl text-[15px] text-[#4A5568] focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 focus:border-[#A16D36] transition-all"
                     />
-                    <p className="text-[12px] text-[#A0AEC0] mt-2 font-medium">Email address cannot be changed.</p>
-                 </div>
+                    <p className="text-[12px] text-[#A0AEC0] mt-2 font-medium">Please provide a valid email address.</p>
+                  </div>
                  <div>
                     <label className="block text-[14px] font-bold text-[#2D3748] mb-2">Phone Number</label>
                     <input 

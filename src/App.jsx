@@ -21,8 +21,11 @@ import DonationDetail from './pages/DonationDetail';
 import Badges from './pages/Badges';
 import SocialLinks from './pages/SocialLinks';
 import MonetaryDonations from './pages/MonetaryDonations';
+import MonetaryDonationDetail from './pages/MonetaryDonationDetail';
+import PartnerPickups from './pages/PartnerPickups';
 import authService from './services/authService';
 import adminService from './services/adminService';
+import { Toaster } from 'react-hot-toast';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = authService.isAuthenticated();
@@ -104,9 +107,11 @@ const AppContent = () => {
               <Route path="/profile" element={<Profile onUpdate={setUser} />} />
               <Route path="/donations" element={<Donations />} />
               <Route path="/donations/monetary" element={<MonetaryDonations />} />
+              <Route path="/donations/monetary/:id" element={<MonetaryDonationDetail />} />
               <Route path="/donations/:id" element={<DonationDetail />} />
               <Route path="/badges" element={<Badges />} />
               <Route path="/social-links" element={<SocialLinks />} />
+              <Route path="/partners/pickups" element={<PartnerPickups />} />
             </Routes>
           </main>
         </div>
@@ -119,6 +124,7 @@ function App() {
   return (
     <Router>
       <AppContent />
+      <Toaster position="top-right" />
     </Router>
   );
 }

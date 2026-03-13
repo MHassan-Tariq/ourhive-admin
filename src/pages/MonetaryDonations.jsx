@@ -11,9 +11,11 @@ import {
   User,
   Calendar
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import adminService from '../services/adminService';
 
 const MonetaryDonations = () => {
+  const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,7 +130,11 @@ const MonetaryDonations = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {donations.map((d) => (
-                  <tr key={d._id} className="group hover:bg-gray-50 transition-colors bg-white">
+                  <tr 
+                    key={d._id} 
+                    onClick={() => navigate(`/donations/monetary/${d._id}`)}
+                    className="group hover:bg-gray-50 transition-colors bg-white cursor-pointer"
+                  >
                     <td className="px-6 py-6 text-sm">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-primary">
@@ -165,7 +171,7 @@ const MonetaryDonations = () => {
                     <td className="px-6 py-6 text-right">
                       {d.status === 'pending' && (
                         <button 
-                          onClick={() => handleApprove(d._id)}
+                          onClick={(e) => { e.stopPropagation(); handleApprove(d._id); }}
                           disabled={approvingId === d._id}
                           className="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-light transition-all disabled:opacity-50 flex items-center gap-2 ml-auto"
                         >

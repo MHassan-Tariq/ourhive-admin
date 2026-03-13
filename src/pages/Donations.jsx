@@ -150,6 +150,7 @@ const Donations = () => {
             <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
                 <tr className="bg-[#FAF8F5] border-b border-gray-100">
+                  <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">IMAGE</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">DONOR NAME</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">ITEM NAME</th>
                   <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">QUANTITY</th>
@@ -165,6 +166,17 @@ const Donations = () => {
                   const storage = d.storageDetails ? [d.storageDetails.room, d.storageDetails.rack, d.storageDetails.shelf].filter(Boolean).join(', ') : '-';
                   return (
                     <tr key={d._id} onClick={() => navigate(`/donations/${d._id}`)} className="group hover:bg-gray-50 cursor-pointer transition-colors bg-white">
+                      <td className="px-6 py-6">
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden border border-black/5 group-hover:border-primary/20 transition-all">
+                          {d.image ? (
+                            <img src={d.image} alt={d.itemName} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-gray-400">
+                                <Package size={20} />
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-6 text-sm font-bold text-gray-800">
                         {d.donorId?.firstName ? `${d.donorId?.firstName} ${d.donorId?.lastName}` : d.donorName || 'Anonymous'}
                       </td>

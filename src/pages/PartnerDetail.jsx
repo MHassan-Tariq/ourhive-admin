@@ -160,8 +160,6 @@ const PartnerDetail = () => {
   const legalEntityName = partner.legalEntityName || partner.orgName || 'N/A';
   const registrationNumber = partner.registrationNumber || 'N/A';
   const headquarters = partner.headquarters || partner.address || 'N/A';
-  const taxStatus = partner.taxStatus || 'Pending';
-  const companyOverview = partner.companyOverview || partner.description || 'No overview provided.';
   const onboardingScore = partner.onboardingScore || 0;
   const status = partner.status || 'PENDING';
   const agreementHistory = partner.agreementHistory || [];
@@ -258,18 +256,8 @@ const PartnerDetail = () => {
                    <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">HEADQUARTERS</label>
                    <p className="text-[16px] font-bold text-[#2D3748]">{headquarters}</p>
                 </div>
-                <div className="space-y-1.5">
-                   <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider">TAX STATUS</label>
-                   <p className="text-[16px] font-bold text-emerald-600">{taxStatus}</p>
-                </div>
              </div>
  
-             <div className="bg-[#FAF8F5] p-6 rounded-2xl">
-                <label className="text-[11px] font-bold text-[#A0AEC0] uppercase tracking-wider mb-2 block">COMPANY OVERVIEW</label>
-                <p className="text-[14px] text-[#4A5568] leading-relaxed">
-                   {companyOverview}
-                </p>
-             </div>
           </div>
         </div>
       </div>

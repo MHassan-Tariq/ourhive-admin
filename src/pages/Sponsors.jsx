@@ -29,6 +29,11 @@ const Sponsors = () => {
   const [editingSponsor, setEditingSponsor] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(null); // ID of sponsor being deleted
+  const [stats, setStats] = useState({
+    annualContributions: 0,
+    inKindValuation: 0,
+    totalActivePartners: 0
+  });
 
   // Mock data to ensure the UI works flawlessly even if the backend endpoint is missing, matching the screenshot
   const mockSponsors = [
@@ -63,6 +68,9 @@ const Sponsors = () => {
             setSponsors(transformed);
             setTotalPages(apiData.pages || 1);
             setTotalCount(apiData.total || transformed.length);
+            if (apiData.stats) {
+              setStats(apiData.stats);
+            }
             return; // Successful API call, exit early
           }
         } catch (e) {
@@ -363,7 +371,7 @@ const Sponsors = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium mb-1">Annual Contributions</p>
-            <h3 className="text-2xl font-bold text-gray-900">$142,500</h3>
+            <h3 className="text-2xl font-bold text-gray-900">{formatCurrency(stats.annualContributions)}</h3>
           </div>
         </div>
         
@@ -375,7 +383,7 @@ const Sponsors = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium mb-1">In-Kind Valuation</p>
-            <h3 className="text-2xl font-bold text-gray-900">$18,200</h3>
+            <h3 className="text-2xl font-bold text-gray-900">{formatCurrency(stats.inKindValuation)}</h3>
           </div>
         </div>
         
@@ -387,7 +395,7 @@ const Sponsors = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium mb-1">Total Active Partners</p>
-            <h3 className="text-2xl font-bold text-gray-900">24</h3>
+            <h3 className="text-2xl font-bold text-gray-900">{stats.totalActivePartners}</h3>
           </div>
         </div>
       </div>

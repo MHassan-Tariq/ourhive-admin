@@ -129,7 +129,7 @@ const Events = () => {
     return (
       <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${bgColor}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>
-        <span className={`text-[11px] font-bold tracking-wider ${textColor}`}>{status || 'Unknown'}</span>
+        <span className={`text-[11px] font-bold tracking-wider ${textColor}`}>{status === 'Active' ? 'Approved' : (status || 'Unknown')}</span>
       </div>
     );
   };
