@@ -13,7 +13,8 @@ import {
   Loader2,
   AlertCircle,
   Plus,
-  MapPin
+  MapPin,
+  Ban
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -92,8 +93,16 @@ const VolunteerDetail = () => {
           (o.opportunityId?._id || o._id) === selectedEventId
         );
         
-        const newLog = {
-          _id: Date.now().toString(), // Temporary ID for immediate UI update
+        // Use the actual log returned from the backend if available
+        const newLog = response.log ? {
+          ...response.log,
+          // Ensure opportunityId is populated for the UI if it's just an ID in the log response
+          opportunityId: selectedEventId ? {
+            _id: selectedEventId,
+            title: matchingOpportunity?.opportunityId?.title || matchingOpportunity?.title || 'Event'
+          } : null
+        } : {
+          _id: Date.now().toString(),
           date: new Date().toISOString(),
           hoursLogged: parseFloat(hoursToAdd),
           notes: notes || 'Manual administrative entry',
@@ -101,12 +110,12 @@ const VolunteerDetail = () => {
             _id: selectedEventId,
             title: matchingOpportunity?.opportunityId?.title || matchingOpportunity?.title || 'Event'
           } : null,
-          category: 'Administrative / Manual Entry'
+          category: 'Administrative / Manual Entry',
+          status: 'pending'
         };
 
         return { 
           ...prev, 
-          totalHours: (prev.totalHours || 0) + parseFloat(hoursToAdd),
           volunteerLogs: [newLog, ...(prev.volunteerLogs || [])]
         };
       });
@@ -150,12 +159,20 @@ const VolunteerDetail = () => {
     );
   }
 
-  const logs = [
-    { event: 'Volunteer Joined', date: new Date(volunteer.createdAt).toLocaleDateString(), hours: '0 hrs', status: 'System', statusType: 'approved' },
-  ];
+  const approvedHours = volunteer.volunteerLogs
+    ?.filter(log => log.status === 'approved' || !log.status)
+    .reduce((sum, log) => sum + (log.hoursLogged || 0), 0) || 0;
+  
+  const pendingHours = volunteer.volunteerLogs
+    ?.filter(log => log.status === 'pending')
+    .reduce((sum, log) => sum + (log.hoursLogged || 0), 0) || 0;
+
+  const rejectedHours = volunteer.volunteerLogs
+    ?.filter(log => log.status === 'rejected')
+    .reduce((sum, log) => sum + (log.hoursLogged || 0), 0) || 0;
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500 pb-12">
+    <div className="animate-in slide-in-from-bottom-4 duration-500 pb-12 max-w-7xl mx-auto">
       <button 
         onClick={() => navigate('/volunteers')} 
         className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary transition-colors mb-8"
@@ -164,8 +181,8 @@ const VolunteerDetail = () => {
         <span>Back to Volunteers</span>
       </button>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="w-full lg:w-[320px] space-y-6 shrink-0">
+      <div className="flex flex-col xl:flex-row gap-8">
+        <div className="w-full xl:w-[280px] space-y-6 shrink-0">
           <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-8 text-center">
             <div className="relative w-24 h-24 mx-auto mb-6">
               {volunteer.userId?.profilePictureUrl || volunteer.profilePictureUrl ? (
@@ -327,13 +344,15 @@ const VolunteerDetail = () => {
                     </div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[700px]">
                       <thead>
                         <tr className="bg-gray-50/50">
-                          <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">DATE</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">DURATION</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">ASSIGNED EVENT</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">NOTES</th>
+                          <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest w-[110px]">DATE</th>
+                          <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest w-[90px]">DURATION</th>
+                          <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest w-[90px]">STATUS</th>
+                          <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest">ASSIGNED EVENT</th>
+                          <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest">NOTES</th>
+                          <th className="px-6 py-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-right w-[140px]">ACTIONS</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
@@ -341,7 +360,7 @@ const VolunteerDetail = () => {
                           volunteer.volunteerLogs.map((log) => (
                             <tr key={log._id} className="hover:bg-gray-50/30 transition-colors">
                               <td className="px-6 py-4">
-                                <span className="text-sm font-bold text-gray-700">{new Date(log.date).toLocaleDateString()}</span>
+                                <span className="text-xs font-bold text-gray-700">{new Date(log.date).toLocaleDateString()}</span>
                               </td>
                               <td className="px-6 py-4">
                                 <span className="px-2.5 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold whitespace-nowrap">
@@ -349,23 +368,77 @@ const VolunteerDetail = () => {
                                 </span>
                               </td>
                               <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  <Calendar size={14} className="text-gray-300" />
-                                  <span className="text-sm font-medium text-gray-600">
+                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${
+                                  log.status === 'pending' ? 'bg-orange-50 text-orange-600' :
+                                  log.status === 'rejected' ? 'bg-red-50 text-red-600' : 
+                                  'bg-green-50 text-green-600'
+                                }`}>
+                                  {log.status || 'Approved'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2 max-w-[120px]">
+                                  <Calendar size={13} className="text-gray-300 shrink-0" />
+                                  <span className="text-xs font-medium text-gray-600 truncate" title={log.opportunityId?.title || 'General Activity'}>
                                     {log.opportunityId?.title || 'General Activity'}
                                   </span>
                                 </div>
                               </td>
                               <td className="px-6 py-4">
-                                <p className="text-sm text-gray-400 truncate max-w-[200px]" title={log.notes}>
+                                <p className="text-xs text-gray-400 truncate max-w-[120px]" title={log.notes}>
                                   {log.notes || '—'}
                                 </p>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                {log.status === 'pending' && (
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      onClick={async () => {
+                                        if (window.confirm('Approve these hours?')) {
+                                          try {
+                                            await adminService.approveVolunteerHours(log._id, 'approved');
+                                            setVolunteer(prev => ({
+                                              ...prev,
+                                              totalHours: (prev.totalHours || 0) + log.hoursLogged,
+                                              volunteerLogs: prev.volunteerLogs.map(l => l._id === log._id ? { ...l, status: 'approved' } : l)
+                                            }));
+                                          } catch (err) {
+                                            console.error('Approval error:', err);
+                                            alert(`Failed to approve hours: ${err.response?.data?.message || err.message}`);
+                                          }
+                                        }
+                                      }}
+                                      className="px-3 py-1 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg text-xs font-bold transition-colors"
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        if (window.confirm('Reject these hours?')) {
+                                          try {
+                                            await adminService.approveVolunteerHours(log._id, 'rejected');
+                                            setVolunteer(prev => ({
+                                              ...prev,
+                                              volunteerLogs: prev.volunteerLogs.map(l => l._id === log._id ? { ...l, status: 'rejected' } : l)
+                                            }));
+                                          } catch (err) {
+                                            console.error('Rejection error:', err);
+                                            alert(`Failed to reject hours: ${err.response?.data?.message || err.message}`);
+                                          }
+                                        }
+                                      }}
+                                      className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-colors"
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                )}
                               </td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan="4" className="px-6 py-12 text-center">
+                            <td colSpan="6" className="px-6 py-12 text-center">
                               <div className="flex flex-col items-center gap-2">
                                 <Clock size={24} className="text-gray-200" />
                                 <span className="text-sm font-medium text-gray-400">No hours logged yet</span>
@@ -377,15 +450,34 @@ const VolunteerDetail = () => {
                     </table>
                   </div>
                 </section>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-2xl border border-black/5 p-6 border-b-4 border-b-primary shadow-xl shadow-primary/5">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 block">TOTAL HOURS</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
+                  <div className="bg-white rounded-2xl border border-black/5 p-6 border-b-4 border-b-green-500 shadow-xl shadow-green-500/5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 block">APPROVED HOURS</label>
                     <div className="flex items-baseline gap-3">
-                      <span className="text-3xl font-bold text-primary">{volunteer.totalHours || 0}</span>
+                      <span className="text-3xl font-bold text-green-600">{approvedHours}</span>
                       <span className="text-[11px] font-bold text-green-500 flex items-center gap-1">
                         <TrendingUp size={14} />
                         Active
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-black/5 p-6 border-b-4 border-b-orange-400 shadow-xl shadow-orange-400/5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 block">PENDING HOURS</label>
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-3xl font-bold text-orange-500">{pendingHours}</span>
+                      <span className="text-[11px] font-bold text-orange-400 flex items-center gap-1">
+                        <Clock size={14} />
+                        Review
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-black/5 p-6 border-b-4 border-b-red-400 shadow-xl shadow-red-400/5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 block">REJECTED HOURS</label>
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-3xl font-bold text-red-500">{rejectedHours}</span>
+                      <span className="text-[11px] font-bold text-red-400 flex items-center gap-1">
+                        <Ban size={14} />
+                        Denied
                       </span>
                     </div>
                   </div>
@@ -394,12 +486,6 @@ const VolunteerDetail = () => {
                     <div className="flex flex-col">
                       <span className="text-xl font-bold text-gray-800">{new Date(volunteer.createdAt).getFullYear()}</span>
                       <span className="text-[11px] font-medium text-gray-400 mt-1">{new Date(volunteer.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-6">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 block">PARTICIPANT ROLE</label>
-                    <div className="flex items-center gap-6">
-                      <span className="text-xl font-bold text-gray-800 capitalize">{volunteer.userId?.role || 'Volunteer'}</span>
                     </div>
                   </div>
                 </div>
