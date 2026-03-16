@@ -13,7 +13,8 @@ import {
   AlertCircle,
   DollarSign,
   Briefcase,
-  Truck
+  Truck,
+  X
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
