@@ -24,9 +24,10 @@ import {
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose, user }) => {
+  const isAdmin = user?.role === 'admin';
   const menuGroups = [
     {
-      title: 'USER MANAGEMENT',
+      title: 'MANAGEMENT',
       items: [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Participants', path: '/participants', icon: Users },
@@ -34,11 +35,11 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         { name: 'Sponsors', path: '/sponsors', icon: Handshake },
         { name: 'In-Kind Donations', path: '/donations', icon: Package },
         { name: 'Monetary Donations', path: '/donations/monetary', icon: CircleDollarSign },
-         { name: 'Community Partners', path: '/partners', icon: UsersRound },
+        { name: 'Community Partners', path: '/partners', icon: UsersRound },
         { name: 'Partner Pickups', path: '/partners/pickups', icon: Truck },
         { name: 'Events', path: '/events', icon: CalendarDays },
         { name: 'Badges', path: '/badges', icon: Award },
-        { name: 'Social Links', path: '/social-links', icon: Share2 },
+        ...(isAdmin ? [{ name: 'Social Links', path: '/social-links', icon: Share2 }] : []),
       ]
     }
   ];
@@ -112,10 +113,12 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         </nav>
 
         <div className="mt-auto px-3 py-6 border-t border-black/5">
-          <NavLink to="/settings" className="flex items-center px-3 py-2.5 rounded-xl text-gray-600 hover:bg-primary/5 hover:text-primary transition-all text-sm font-medium mb-1">
-            <Settings size={18} className="mr-3" />
-            <span>Settings</span>
-          </NavLink>
+          {isAdmin && (
+            <NavLink to="/settings" className="flex items-center px-3 py-2.5 rounded-xl text-gray-600 hover:bg-primary/5 hover:text-primary transition-all text-sm font-medium mb-1">
+              <Settings size={18} className="mr-3" />
+              <span>Settings</span>
+            </NavLink>
+          )}
           <button 
             onClick={handleLogout}
             className="w-full flex items-center px-3 py-2.5 text-red-600 rounded-xl hover:bg-red-50 transition-all text-sm font-medium"

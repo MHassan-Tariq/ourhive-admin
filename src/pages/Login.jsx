@@ -19,10 +19,11 @@ const Login = () => {
     try {
       const data = await authService.login(email, password);
       
-      if (data.user.role === 'admin') {
+      const allowedRoles = ['admin', 'moderator'];
+      if (allowedRoles.includes(data.user.role)) {
         navigate('/');
       } else {
-        setError('Access denied. Admin role required.');
+        setError('Access denied. Proper role required.');
         authService.logout();
       }
     } catch (err) {

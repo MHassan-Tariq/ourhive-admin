@@ -32,7 +32,8 @@ const ProtectedRoute = ({ children }) => {
   const user = authService.getCurrentUser();
   const location = useLocation();
 
-  if (!isAuthenticated || user?.role !== 'admin') {
+  const allowedRoles = ['admin', 'moderator'];
+  if (!isAuthenticated || !allowedRoles.includes(user?.role)) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -50,7 +51,8 @@ const AppContent = () => {
   useEffect(() => {
     const isAuthenticated = authService.isAuthenticated();
     
-    if (isLoginPage && isAuthenticated && user?.role === 'admin') {
+    const allowedRoles = ['admin', 'moderator'];
+    if (isLoginPage && isAuthenticated && allowedRoles.includes(user?.role)) {
       navigate('/');
     }
 
