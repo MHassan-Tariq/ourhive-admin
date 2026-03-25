@@ -27,14 +27,17 @@ import authService from './services/authService';
 import adminService from './services/adminService';
 import { Toaster } from 'react-hot-toast';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles = ['admin', 'moderator'] }) => {
   const isAuthenticated = authService.isAuthenticated();
   const user = authService.getCurrentUser();
   const location = useLocation();
 
-  const allowedRoles = ['admin', 'moderator'];
-  if (!isAuthenticated || !allowedRoles.includes(user?.role)) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!allowedRoles.includes(user?.role)) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -98,21 +101,42 @@ const AppContent = () => {
               <Route path="/participants/:id" element={<ParticipantDetail />} />
               <Route path="/volunteers" element={<Volunteers />} />
               <Route path="/volunteers/:id" element={<VolunteerDetail />} />
-              <Route path="/sponsors" element={<Sponsors />} />
-              <Route path="/sponsors/:id" element={<SponsorDetail />} />
+              
+              {/* Admin Only Routes */}
+              <Route path="/sponsors" element={
+                <ProtectedRoute allowedRoles={['admin']}><Sponsors /></ProtectedRoute>
+              } />
+              <Route path="/sponsors/:id" element={
+                <ProtectedRoute allowedRoles={['admin']}><SponsorDetail /></ProtectedRoute>
+              } />
+              
               <Route path="/partners" element={<Partners />} />
               <Route path="/partners/:id" element={<PartnerDetail />} />
               <Route path="/events" element={<Events />} />
               <Route path="/events/new" element={<CreateEvent />} />
               <Route path="/events/:id" element={<CreateEvent />} />
-              <Route path="/settings" element={<Settings />} />
+              
+              <Route path="/settings" element={
+                <ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>
+              } />
+              
               <Route path="/profile" element={<Profile onUpdate={setUser} />} />
               <Route path="/donations" element={<Donations />} />
-              <Route path="/donations/monetary" element={<MonetaryDonations />} />
-              <Route path="/donations/monetary/:id" element={<MonetaryDonationDetail />} />
+              
+              <Route path="/donations/monetary" element={
+                <ProtectedRoute allowedRoles={['admin']}><MonetaryDonations /></ProtectedRoute>
+              } />
+              <Route path="/donations/monetary/:id" element={
+                <ProtectedRoute allowedRoles={['admin']}><MonetaryDonationDetail /></ProtectedRoute>
+              } />
+              
               <Route path="/donations/:id" element={<DonationDetail />} />
               <Route path="/badges" element={<Badges />} />
-              <Route path="/social-links" element={<SocialLinks />} />
+              
+              <Route path="/social-links" element={
+                <ProtectedRoute allowedRoles={['admin']}><SocialLinks /></ProtectedRoute>
+              } />
+              
               <Route path="/partners/pickups" element={<PartnerPickups />} />
             </Routes>
           </main>

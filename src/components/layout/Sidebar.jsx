@@ -25,6 +25,8 @@ import {
 
 const Sidebar = ({ isOpen, onClose, user }) => {
   const isAdmin = user?.role === 'admin';
+  const isModerator = user?.role === 'moderator';
+
   const menuGroups = [
     {
       title: 'MANAGEMENT',
@@ -32,9 +34,13 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Participants', path: '/participants', icon: Users },
         { name: 'Volunteers', path: '/volunteers', icon: Heart },
-        { name: 'Sponsors', path: '/sponsors', icon: Handshake },
+        ...(!isModerator ? [
+          { name: 'Sponsors', path: '/sponsors', icon: Handshake },
+        ] : []),
         { name: 'In-Kind Donations', path: '/donations', icon: Package },
-        { name: 'Monetary Donations', path: '/donations/monetary', icon: CircleDollarSign },
+        ...(!isModerator ? [
+          { name: 'Monetary Donations', path: '/donations/monetary', icon: CircleDollarSign },
+        ] : []),
         { name: 'Community Partners', path: '/partners', icon: UsersRound },
         { name: 'Partner Pickups', path: '/partners/pickups', icon: Truck },
         { name: 'Events', path: '/events', icon: CalendarDays },
