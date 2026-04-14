@@ -198,7 +198,7 @@ const DonationDetail = () => {
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 py-6 bg-white rounded-2xl border border-black/5 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Transaction #{donation._id?.slice(-8).toUpperCase()}</h1>
-          <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Recorded on {new Date(donation.createdAt).toLocaleString()}</p>
+          <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Recorded on {new Date(donation.createdAt).toLocaleDateString()}</p>
         </div>
 
       </header>
