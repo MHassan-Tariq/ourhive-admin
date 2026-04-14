@@ -193,6 +193,16 @@ const adminService = {
     return response.data;
   },
 
+  createManualDonation: async (data) => {
+    const response = await api.post('/admin/in-kind-donations', data);
+    return response.data;
+  },
+
+  deleteDonation: async (id) => {
+    const response = await api.delete(`/admin/in-kind-donations/${id}`);
+    return response.data;
+  },
+
   getPartnerPickups: async (params = {}) => {
     const response = await api.get('/admin/partner-pickups', { params });
     return response.data;

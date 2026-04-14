@@ -14,7 +14,9 @@ import {
   DollarSign,
   Briefcase,
   Truck,
-  X
+  X,
+  Search,
+  Check
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import adminService from '../services/adminService';
@@ -29,6 +31,12 @@ const DonationDetail = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [sponsors, setSponsors] = useState([]);
+  const [isSponsorsLoading, setIsSponsorsLoading] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    sponsorId: '',
+    amount: ''
+  });
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -47,6 +55,30 @@ const DonationDetail = () => {
 
     fetchDetail();
   }, [id]);
+
+  useEffect(() => {
+    const fetchSponsors = async () => {
+      setIsSponsorsLoading(true);
+      try {
+        const response = await adminService.getSponsors();
+        setSponsors(response.data || []);
+      } catch (err) {
+        console.error('Failed to fetch sponsors:', err);
+      } finally {
+        setIsSponsorsLoading(false);
+      }
+    };
+    fetchSponsors();
+  }, []);
+
+  useEffect(() => {
+    if (donation) {
+      setPaymentData({
+        sponsorId: donation.sponsorId?._id || donation.sponsorId || '',
+        amount: donation.finalAmount || ''
+      });
+    }
+  }, [donation]);
 
   const [storageData, setStorageData] = useState({
     room: '',
@@ -90,32 +122,28 @@ const DonationDetail = () => {
     setShowRejectionModal(true);
   };
 
-  const handleSaveDetails = async () => {
+  const handleSavePayment = async () => {
+    if (!paymentData.sponsorId) {
+      toast.error('Please select a sponsor');
+      return;
+    }
+    if (!paymentData.amount || isNaN(paymentData.amount)) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
     setIsUpdating(true);
     try {
-      await adminService.updateDonationStatus(id, {
-        locationName: storageData.locationName,
-        additionalNotes: storageData.additionalNotes,
-        storageRoom: storageData.room,
-        storageRack: storageData.rack,
-        storageShelf: storageData.shelf,
-        storageFloor: storageData.floor
+      const response = await adminService.updateDonationStatus(id, {
+        sponsorId: paymentData.sponsorId,
+        finalAmount: Number(paymentData.amount)
       });
-      setDonation(prev => ({
-        ...prev,
-        locationName: storageData.locationName,
-        additionalNotes: storageData.additionalNotes,
-        storageDetails: {
-          room: storageData.room,
-          rack: storageData.rack,
-          shelf: storageData.shelf,
-          floor: storageData.floor
-        }
-      }));
-      alert('Successfully saved storage details.');
+      
+      setDonation(response.data.data);
+      toast.success('Payment record saved successfully');
     } catch (err) {
-      alert('Failed to save details.');
       console.error(err);
+      toast.error('Failed to save payment record');
     } finally {
       setIsUpdating(false);
     }
@@ -165,31 +193,6 @@ const DonationDetail = () => {
           <ChevronLeft size={20} />
           <span>Back to Donations</span>
         </button>
-
-        <div className="flex flex-wrap gap-3">
-              <button
-                onClick={onRejectClick}
-                disabled={isUpdating}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-red-100 text-red-600 hover:bg-red-50 font-bold text-sm transition-all disabled:opacity-50"
-              >
-                <XCircle size={18} />
-                Reject
-              </button>
-          <button
-            onClick={() => handleStatusUpdate('pending')}
-            disabled={isUpdating || donation.status === 'pending'}
-            className="px-6 py-2 bg-[#EEE7E1] text-gray-800 rounded-xl font-bold text-xs hover:bg-gray-200 transition-colors disabled:opacity-50"
-          >
-            Mark Pending
-          </button>
-          <button
-            onClick={() => handleStatusUpdate('approved')}
-            disabled={isUpdating || donation.status === 'success' || donation.status === 'approved'}
-            className="px-6 py-2 bg-primary text-white rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:bg-primary-light transition-colors disabled:opacity-50"
-          >
-            Approve Contribution
-          </button>
-        </div>
       </div>
 
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 py-6 bg-white rounded-2xl border border-black/5 shadow-sm">
@@ -197,10 +200,7 @@ const DonationDetail = () => {
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Transaction #{donation._id?.slice(-8).toUpperCase()}</h1>
           <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Recorded on {new Date(donation.createdAt).toLocaleString()}</p>
         </div>
-        <div className={`px-4 py-2 rounded-xl border font-bold text-sm capitalize flex items-center gap-2 ${getStatusBanner()}`}>
-          {donation.status === 'pending' ? <Clock size={16} /> : donation.status === 'success' || donation.status === 'approved' ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-          {donation.status}
-        </div>
+
       </header>
 
       {donation.status === 'rejected' && donation.rejectionReason && (
@@ -215,179 +215,97 @@ const DonationDetail = () => {
         </div>
       )}
 
-      {/* Storage & Details Section (At the top) */}
-      <div className="bg-white rounded-2xl shadow-sm border-2 border-primary/20 overflow-hidden mb-8">
-        <div className="p-6 border-b border-black/5 flex items-center justify-between">
+      {/* Monetary Contribution Recording Section */}
+      <div className="bg-white rounded-3xl shadow-sm border-2 border-[#A16D36]/10 overflow-hidden mb-8">
+        <div className="p-6 border-b border-black/5 flex items-center justify-between bg-[#FAF8F5]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-              <Package size={20} />
+            <div className="w-10 h-10 bg-[#A16D36]/10 rounded-2xl flex items-center justify-center text-[#A16D36]">
+              <DollarSign size={22} />
             </div>
-            <h2 className="text-base font-bold text-gray-800">Storage & Details</h2>
+            <div>
+              <h2 className="text-base font-bold text-gray-800">Record Sponsor Payment</h2>
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-0.5">Manual accounting from Zeffy records</p>
+            </div>
           </div>
           <button
-            onClick={handleSaveDetails}
+            onClick={handleSavePayment}
             disabled={isUpdating}
-            className="px-6 py-2 bg-primary text-white rounded-xl font-bold text-xs shadow-md hover:bg-primary-light transition-all active:scale-95 flex items-center gap-2"
+            className="px-8 py-3 bg-[#A16D36] text-white rounded-2xl font-bold text-sm shadow-lg shadow-[#A16D36]/20 hover:bg-[#8B5D2E] transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
           >
-            {isUpdating && <Loader2 size={14} className="animate-spin" />}
-            Save Information
+            {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+            Save Payment Record
           </button>
         </div>
 
-        <div className="px-6 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Location Name</label>
-              <input
-                type="text"
-                placeholder="Warehouse A"
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-black/5 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                value={storageData.locationName}
-                onChange={(e) => setStorageData(prev => ({ ...prev, locationName: e.target.value }))}
-              />
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Select Sponsor (Search by Email)</label>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  value={paymentData.sponsorId}
+                  onChange={(e) => setPaymentData(prev => ({ ...prev, sponsorId: e.target.value }))}
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border border-black/5 text-[15px] font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Select a sponsor...</option>
+                  {sponsors.map(s => (
+                    <option key={s._id} value={s.userId?._id || s.userId}>
+                      {s.organizationName || (s.userId?.firstName ? `${s.userId.firstName} ${s.userId.lastName}` : 'Sponsor')} ({s.userId?.email || 'No Email'})
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <ChevronLeft className="rotate-[-90deg]" size={16} />
+                </div>
+              </div>
+              {isSponsorsLoading && <p className="text-[10px] text-primary flex items-center gap-1.5 font-bold animate-pulse mt-1 ml-1"><Loader2 size={12} className="animate-spin" /> Loading sponsors list...</p>}
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Room</label>
-              <input
-                type="text"
-                placeholder="R-101"
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-black/5 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                value={storageData.room}
-                onChange={(e) => setStorageData(prev => ({ ...prev, room: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Rack</label>
-              <input
-                type="text"
-                placeholder="RK-05"
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-black/5 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                value={storageData.rack}
-                onChange={(e) => setStorageData(prev => ({ ...prev, rack: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Shelf</label>
-              <input 
-                type="text"
-                placeholder="SH-03"
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-black/5 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                value={storageData.shelf}
-                onChange={(e) => setStorageData(prev => ({ ...prev, shelf: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Floor</label>
-              <input 
-                type="text"
-                placeholder="L2"
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-black/5 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                value={storageData.floor}
-                onChange={(e) => setStorageData(prev => ({ ...prev, floor: e.target.value }))}
-              />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Description & Additional Notes</label>
-            <textarea 
-              rows={4}
-              placeholder="Add specific storage notes or item descriptions here..."
-              className="w-full px-4 py-4 rounded-xl bg-gray-50 border border-black/5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none leading-relaxed"
-              value={storageData.additionalNotes}
-              onChange={(e) => setStorageData(prev => ({ ...prev, additionalNotes: e.target.value }))}
-            />
+            <div className="space-y-2.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Received Amount ($)</label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</div>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  className="w-full pl-10 pr-4 py-4 rounded-2xl bg-gray-50 border border-black/5 text-[15px] font-mono font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#A16D36]/20 transition-all"
+                  value={paymentData.amount}
+                  onChange={(e) => setPaymentData(prev => ({ ...prev, amount: e.target.value }))}
+                />
+              </div>
+              <p className="text-[10px] text-gray-400 font-medium tracking-wide mt-1 ml-1 italic">Enter the final amount exactly as it appears in your accounting account.</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {donation.image && (
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
-            <div className="p-6 border-b border-black/5 flex items-center gap-3">
-              <Package size={18} className="text-primary" />
-              <h2 className="text-base font-bold text-gray-800">Product Image</h2>
-            </div>
-            <div className="p-6 bg-gray-50 flex justify-center">
-              <div className="max-w-2xl w-full h-[400px] rounded-xl shadow-lg border-4 border-white overflow-hidden">
-                <img src={donation.image} alt={donation.itemName} className="w-full h-full object-contain bg-black/5" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
-          <div className="p-6 border-b border-black/5 flex items-center gap-3">
-            <Package size={18} className="text-primary" />
-            <h2 className="text-base font-bold text-gray-800">Item Specifications</h2>
-          </div>
-          <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-gray-400">Item Name</label>
-              <span className="text-lg font-bold text-gray-800">{donation.itemName}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-gray-400">Quantity</label>
-              <span className="text-sm font-bold text-gray-800">{donation.quantity || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-gray-400">Estimated Value</label>
-              <span className="text-sm font-bold text-primary font-mono bg-primary/5 px-2 py-1 rounded-lg border border-primary/10">{donation.estimatedValue || 'Not specified'}</span>
-            </div>
-          </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden max-w-2xl">
+        <div className="p-6 border-b border-black/5 flex items-center gap-3">
+          <User size={18} className="text-primary" />
+          <h2 className="text-base font-bold text-gray-800">Donor Information</h2>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
-          <div className="p-6 border-b border-black/5 flex items-center gap-3">
-            <User size={18} className="text-primary" />
-            <h2 className="text-base font-bold text-gray-800">Donor Information</h2>
-          </div>
-          <div className="p-6 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm">
-                {donation.donorId?.firstName?.[0] || donation.donorName?.[0] || 'A'}
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-gray-800">
-                   {donation.donorId?.firstName ? `${donation.donorId?.firstName} ${donation.donorId?.lastName}` : donation.donorName || 'Anonymous'}
-                </h4>
-                <p className="text-xs font-medium text-gray-400">{donation.donorId?.email || 'No email provided'}</p>
-              </div>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm">
+              {donation.donorId?.firstName?.[0] || donation.donorName?.[0] || 'A'}
             </div>
-            <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
-              <label className="text-sm font-medium text-gray-400">Category Tag</label>
-              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-black/5">{donation.itemCategory || 'Uncategorized'}</span>
+            <div>
+              <h4 className="text-sm font-bold text-gray-800">
+                  {donation.donorId?.firstName ? `${donation.donorId?.firstName} ${donation.donorId?.lastName}` : donation.donorName || 'Anonymous'}
+              </h4>
+              <p className="text-xs font-medium text-gray-400">{donation.donorId?.email || 'No email provided'}</p>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
-          <div className="p-6 border-b border-black/5 flex items-center gap-3">
-            <Truck size={18} className="text-primary" />
-            <h2 className="text-base font-bold text-gray-800">Logistics</h2>
+          <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Received Amount</span>
+            <span className="text-lg font-black text-[#A16D36]">${donation.finalAmount?.toLocaleString() || '0.00'}</span>
           </div>
-          <div className="p-6">
-            <div className="bg-[#FAF8F5] p-5 rounded-2xl flex items-center gap-5 border border-black/5">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm border border-[#A16D36]">
-                <MapPin size={22} />
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between mb-1">
-                  <h4 className="text-sm font-bold text-gray-800 capitalize">{donation.deliveryMethod || 'Drop-off'}</h4>
-                </div>
-                {donation.pickupAddress && typeof donation.pickupAddress === 'string' ? (
-                  <p className="text-xs font-medium text-gray-500 mt-1 leading-relaxed italic">
-                    {donation.pickupAddress}
-                  </p>
-                ) : donation.pickupAddress?.street ? (
-                  <p className="text-xs font-medium text-gray-500 mt-1 leading-relaxed italic">
-                    {donation.pickupAddress.street}, {donation.pickupAddress.city} {donation.pickupAddress.zip}
-                  </p>
-                ) : (
-                  <p className="text-xs font-medium text-gray-400 mt-0.5">No external pickup address registered.</p>
-                )}
-              </div>
-            </div>
+          <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Category Tag</span>
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-black uppercase tracking-wider">
+              {donation.itemCategory || 'In-Kind'}
+            </span>
           </div>
         </div>
       </div>
