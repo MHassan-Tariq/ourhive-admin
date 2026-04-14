@@ -232,7 +232,6 @@ const Donations = () => {
                     <tr key={d._id} onClick={() => navigate(`/donations/${d._id}`)} className="group hover:bg-gray-50 cursor-pointer transition-colors bg-white">
                       <td className="px-8 py-6">
                         <span className="text-sm font-bold text-gray-800">{new Date(d.createdAt).toLocaleDateString()}</span>
-                        <p className="text-[10px] text-gray-400 font-medium uppercase mt-0.5">{new Date(d.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-3">
