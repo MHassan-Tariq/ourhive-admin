@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const DEFAULT_API = isLocalhost ? 'http://localhost:5001/api' : 'https://our-hive.vercel.app/api';
+const DEFAULT_API = isLocalhost ? 'http://localhost:5002/api' : 'https://our-hive.vercel.app/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || DEFAULT_API;
 
