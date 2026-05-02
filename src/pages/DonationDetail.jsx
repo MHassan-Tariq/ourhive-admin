@@ -243,7 +243,7 @@ const DonationDetail = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {['pending', 'offered', 'claimed', 'app claimed'].includes(donation.status?.toLowerCase()) && (
+          {(donation.status === 'pending' || donation.status === 'offered') && (
             <>
               <button
                 onClick={() => handleStatusUpdate('approved')}
