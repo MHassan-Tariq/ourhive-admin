@@ -37,6 +37,9 @@ const DonationDetail = () => {
     sponsorId: '',
     amount: ''
   });
+  const [partners, setPartners] = useState([]);
+  const [isPartnersLoading, setIsPartnersLoading] = useState(false);
+  const [partnerSelection, setPartnerSelection] = useState('');
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -69,6 +72,21 @@ const DonationDetail = () => {
       }
     };
     fetchSponsors();
+  }, []);
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      setIsPartnersLoading(true);
+      try {
+        const response = await adminService.getPartners({ limit: 100 });
+        setPartners(response.data || []);
+      } catch (err) {
+        console.error('Failed to fetch partners:', err);
+      } finally {
+        setIsPartnersLoading(false);
+      }
+    };
+    fetchPartners();
   }, []);
 
   useEffect(() => {
@@ -149,6 +167,29 @@ const DonationDetail = () => {
     }
   };
 
+  const handleAssignPartner = async () => {
+    if (!partnerSelection) {
+      toast.error('Please select a partner');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await adminService.updateDonationStatus(id, {
+        recipientId: partnerSelection,
+        status: 'scheduled'
+      });
+      
+      setDonation(response.data.data);
+      toast.success('Partner assigned successfully');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to assign partner');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[600px] text-gray-400 gap-4">
@@ -167,10 +208,10 @@ const DonationDetail = () => {
           <p className="text-sm text-gray-500">{error || 'Donation record not found.'}</p>
         </div>
         <button
-          onClick={() => navigate('/donations')}
+          onClick={() => navigate(-1)}
           className="px-6 py-2 bg-primary text-white rounded-xl font-bold text-sm"
         >
-          Back to Donations
+          Back to Previous Page
         </button>
       </div>
     );
@@ -187,20 +228,60 @@ const DonationDetail = () => {
     <div className="animate-in slide-in-from-bottom-4 duration-500 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <button
-          onClick={() => navigate('/donations')}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary transition-colors"
         >
           <ChevronLeft size={20} />
-          <span>Back to Donations</span>
+          <span>Back to Previous Page</span>
         </button>
       </div>
 
-      <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 py-6 bg-white rounded-2xl border border-black/5 shadow-sm">
+      <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-8 py-6 bg-white rounded-2xl border border-black/5 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Transaction #{donation._id?.slice(-8).toUpperCase()}</h1>
           <p className="text-xs text-gray-500 font-medium tracking-wide uppercase">Recorded on {new Date(donation.createdAt).toLocaleDateString()}</p>
         </div>
 
+        <div className="flex items-center gap-3">
+          {(donation.status === 'pending' || donation.status === 'offered') && (
+            <>
+              <button
+                onClick={() => handleStatusUpdate('approved')}
+                disabled={isUpdating}
+                className="px-6 py-2.5 bg-green-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-green-600/20 hover:bg-green-700 transition-all active:scale-95 flex items-center gap-2"
+              >
+                {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                Approve Pickup
+              </button>
+              <button
+                onClick={onRejectClick}
+                disabled={isUpdating}
+                className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all active:scale-95 flex items-center gap-2"
+              >
+                {isUpdating ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                Reject
+              </button>
+            </>
+          )}
+          {donation.status === 'approved' && (
+            <div className="px-6 py-2.5 bg-green-50 text-green-700 rounded-xl border border-green-100 text-sm font-bold flex items-center gap-2">
+              <CheckCircle2 size={16} />
+              Approved & Available for Partners
+            </div>
+          )}
+          {donation.status === 'scheduled' && (
+            <div className="px-6 py-2.5 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 text-sm font-bold flex items-center gap-2">
+              <Clock size={16} />
+              Scheduled for Pickup
+            </div>
+          )}
+          {donation.status === 'completed' && (
+            <div className="px-6 py-2.5 bg-primary/10 text-primary rounded-xl border border-primary/20 text-sm font-bold flex items-center gap-2">
+              <CheckCircle2 size={16} />
+              Completed
+            </div>
+          )}
+        </div>
       </header>
 
       {donation.status === 'rejected' && donation.rejectionReason && (
@@ -280,6 +361,56 @@ const DonationDetail = () => {
         </div>
       </div>
 
+      {/* Assign Partner Section */}
+      {donation.status === 'approved' && !donation.recipientId && (
+        <div className="bg-white rounded-3xl shadow-sm border-2 border-blue-600/10 overflow-hidden mb-8">
+          <div className="p-6 border-b border-black/5 flex items-center justify-between bg-[#F8FAFC]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                <Truck size={22} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-gray-800">Assign Community Partner</h2>
+                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-0.5">Manually link this pickup to a partner</p>
+              </div>
+            </div>
+            <button
+              onClick={handleAssignPartner}
+              disabled={isUpdating}
+              className="px-8 py-3 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
+            >
+              {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+              Assign Partner
+            </button>
+          </div>
+
+          <div className="p-8">
+            <div className="max-w-md space-y-2.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Select Partner</label>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  value={partnerSelection}
+                  onChange={(e) => setPartnerSelection(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border border-black/5 text-[15px] font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600/20 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Search and select partner...</option>
+                  {partners.map(p => (
+                    <option key={p._id} value={p.userId?._id || p.userId}>
+                      {p.orgName || p.organizationName || (p.userId?.firstName ? `${p.userId.firstName} ${p.userId.lastName}` : 'Partner')} ({p.userId?.email || 'No Email'})
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <ChevronLeft className="rotate-[-90deg]" size={16} />
+                </div>
+              </div>
+              {isPartnersLoading && <p className="text-[10px] text-blue-600 flex items-center gap-1.5 font-bold animate-pulse mt-1 ml-1"><Loader2 size={12} className="animate-spin" /> Loading partners list...</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden max-w-2xl">
         <div className="p-6 border-b border-black/5 flex items-center gap-3">
           <User size={18} className="text-primary" />
@@ -309,6 +440,31 @@ const DonationDetail = () => {
           </div>
         </div>
       </div>
+
+      {donation.recipientId && (
+        <div className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden max-w-2xl mt-8">
+          <div className="p-6 border-b border-black/5 flex items-center gap-3">
+            <Truck size={18} className="text-primary" />
+            <h2 className="text-base font-bold text-gray-800">Recipient Partner Information</h2>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm">
+                {donation.recipientId?.firstName?.[0] || 'P'}
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-gray-800">
+                    {donation.recipientId?.firstName ? `${donation.recipientId?.firstName} ${donation.recipientId?.lastName}` : 'Partner'}
+                </h4>
+                <p className="text-xs font-medium text-gray-400">{donation.recipientId?.email || 'No email provided'}</p>
+                <span className="inline-flex mt-2 px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded-md">
+                  Community Partner
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rejection Modal */}
       {showRejectionModal && (

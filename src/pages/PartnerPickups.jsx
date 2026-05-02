@@ -26,12 +26,18 @@ const PartnerPickups = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await adminService.getPartnerPickups({ search, page, limit: 10 });
+      const response = await adminService.getPartnerPickups({ 
+        search, 
+        page, 
+        limit: 10,
+        status: statusFilter === 'all' ? '' : statusFilter
+      });
       setDonations(response.data);
       setTotalPages(response.pagination.pages);
       setTotalCount(response.pagination.total);
@@ -49,7 +55,7 @@ const PartnerPickups = () => {
       fetchData();
     }, 500);
     return () => clearTimeout(timer);
-  }, [search, page]);
+  }, [search, page, statusFilter]);
 
   const getStatusStyle = (status) => {
     const s = status?.toLowerCase();
@@ -72,8 +78,8 @@ const PartnerPickups = () => {
         </div>
       </div>
 
-      <div className="mb-6">
-        <div className="relative max-w-md">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text" 
@@ -82,6 +88,28 @@ const PartnerPickups = () => {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full pl-12 pr-4 py-3 border border-black/5 rounded-full text-sm focus:ring-2 focus:ring-[#A16D36] outline-none transition-all shadow-sm bg-[#FAF8F5]"
           />
+        </div>
+
+        <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-2xl border border-black/5 shrink-0">
+          {[
+            { id: 'all', label: 'All', icon: Package },
+            { id: 'pending', label: 'Pending', icon: Clock },
+            { id: 'scheduled', label: 'Scheduled', icon: Truck },
+            { id: 'completed', label: 'Completed', icon: CheckCircle2 }
+          ].map((filter) => (
+            <button
+              key={filter.id}
+              onClick={() => { setStatusFilter(filter.id); setPage(1); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                statusFilter === filter.id 
+                  ? 'bg-white text-gray-800 shadow-sm border border-black/5' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <filter.icon size={14} />
+              <span>{filter.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -130,7 +158,11 @@ const PartnerPickups = () => {
                       </div>
                     </td>
                     <td className="px-6 py-6 text-sm font-bold text-gray-800">
-                      {d.donorId?.firstName ? `${d.donorId?.firstName} ${d.donorId?.lastName}` : d.donorName || 'Partner'}
+                      {d.donorId?.role === 'partner' 
+                        ? `${d.donorId.firstName} ${d.donorId.lastName}` 
+                        : (d.recipientId?.role === 'partner' 
+                            ? `${d.recipientId.firstName} ${d.recipientId.lastName}` 
+                            : (d.donorId?.firstName ? `${d.donorId.firstName} ${d.donorId.lastName}` : d.donorName || 'Partner'))}
                     </td>
                     <td className="px-6 py-6 text-sm font-medium text-gray-500 max-w-[150px] truncate">{d.itemName}</td>
                     <td className="px-6 py-6 text-sm font-medium text-gray-500">{d.quantity || '-'}</td>
@@ -187,33 +219,42 @@ const PartnerPickups = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-6 flex items-center gap-5">
-          <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
+        <button 
+          onClick={() => { setStatusFilter('pending'); setPage(1); }}
+          className={`bg-white rounded-2xl shadow-sm border p-6 flex items-center gap-5 transition-all text-left group active:scale-95 ${statusFilter === 'pending' ? 'border-orange-500 ring-4 ring-orange-500/5' : 'border-black/5 hover:border-orange-200'}`}
+        >
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <Clock size={22} />
           </div>
           <div className="flex flex-col">
             <span className="text-[12px] font-bold text-gray-400 capitalize mb-0.5">Pending Approval</span>
             <span className="text-2xl font-bold text-gray-800">{stats?.pendingCount || '0'} Requests</span>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-6 flex items-center gap-5">
-          <div className="w-12 h-12 rounded-full border border-blue-100 bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+        </button>
+        <button 
+          onClick={() => { setStatusFilter('scheduled'); setPage(1); }}
+          className={`bg-white rounded-2xl shadow-sm border p-6 flex items-center gap-5 transition-all text-left group active:scale-95 ${statusFilter === 'scheduled' ? 'border-blue-500 ring-4 ring-blue-500/5' : 'border-black/5 hover:border-blue-200'}`}
+        >
+          <div className="w-12 h-12 rounded-full border border-blue-100 bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <Truck size={24} />
           </div>
           <div className="flex flex-col">
             <span className="text-[12px] font-bold text-gray-400 capitalize mb-0.5">Scheduled Pickups</span>
             <span className="text-2xl font-bold text-gray-800">{stats?.scheduledCount || '0'} Items</span>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-6 flex items-center gap-5">
-          <div className="w-12 h-12 rounded-full border border-green-100 bg-green-50 text-green-500 flex items-center justify-center shrink-0">
+        </button>
+        <button 
+          onClick={() => { setStatusFilter('completed'); setPage(1); }}
+          className={`bg-white rounded-2xl shadow-sm border p-6 flex items-center gap-5 transition-all text-left group active:scale-95 ${statusFilter === 'completed' ? 'border-green-500 ring-4 ring-green-500/5' : 'border-black/5 hover:border-green-200'}`}
+        >
+          <div className="w-12 h-12 rounded-full border border-green-100 bg-green-50 text-green-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <CheckCircle2 size={24} />
           </div>
           <div className="flex flex-col">
             <span className="text-[12px] font-bold text-gray-400 capitalize mb-0.5">Completed Today</span>
             <span className="text-2xl font-bold text-gray-800">{stats?.completedCount || '0'} Pickups</span>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );
