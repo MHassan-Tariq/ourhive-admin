@@ -122,10 +122,10 @@ const PartnerPickups = () => {
       pending: 'bg-orange-50 text-orange-700',
       approved: 'bg-green-50 text-green-700',
       scheduled: 'bg-blue-50 text-blue-700',
-      completed: 'bg-green-50 text-green-700',
-      offered: 'bg-amber-50 text-amber-700',
-      claimed: 'bg-amber-50 text-amber-700',
-      'app claimed': 'bg-purple-50 text-purple-700',
+      completed: 'bg-gray-100 text-gray-600',
+      offered: 'bg-yellow-50 text-yellow-700',
+      claimed: 'bg-yellow-50 text-yellow-700',
+      'app claimed': 'bg-yellow-50 text-yellow-700',
       rejected: 'bg-red-50 text-red-600',
     };
     return `flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest ${styles[s] || 'text-gray-500'}`;
@@ -242,14 +242,16 @@ const PartnerPickups = () => {
                           d.status === 'pending' 
                             ? 'bg-orange-500' 
                             : (d.status === 'claimed' || d.displayStatus?.toLowerCase() === 'app claimed') 
-                                ? 'bg-amber-500' 
+                                ? 'bg-yellow-500' 
                                 : d.status === 'scheduled' 
                                     ? 'bg-blue-500' 
-                                    : (d.status === 'completed' || d.status === 'approved') 
-                                        ? 'bg-green-500' 
-                                        : d.status === 'offered' 
-                                            ? 'bg-[#A16D36]' 
-                                            : 'bg-red-500'
+                                    : d.status === 'completed' 
+                                        ? 'bg-gray-500'
+                                        : d.status === 'approved'
+                                            ? 'bg-green-500'
+                                            : d.status === 'offered' 
+                                                ? 'bg-[#A16D36]' 
+                                                : 'bg-red-500'
                         }`}></span>
                         <span className="capitalize">{d.displayStatus || d.status}</span>
                       </div>
