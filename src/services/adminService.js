@@ -208,6 +208,15 @@ const adminService = {
     return response.data;
   },
 
+  createPartnerPickup: async (formData) => {
+    const response = await api.post('/admin/partner-pickups', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // Monetary Donations
   getMonetaryDonations: async (params = {}) => {
     const response = await api.get('/admin/donations/monetary', { params });
