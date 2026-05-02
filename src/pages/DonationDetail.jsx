@@ -243,7 +243,7 @@ const DonationDetail = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {(donation.status === 'pending' || donation.status === 'offered') && (
+          {(donation.status === 'pending' || donation.status === 'offered' || donation.status === 'claimed' || donation.status === 'app claimed') && (
             <>
               <button
                 onClick={() => handleStatusUpdate('approved')}
