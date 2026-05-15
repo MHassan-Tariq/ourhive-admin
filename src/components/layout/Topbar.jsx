@@ -46,7 +46,12 @@ const Topbar = ({ onMenuClick, user }) => {
             initials
           )}
         </div>
-        <span className="hidden sm:inline text-sm font-semibold text-[#333] pr-2">{name}</span>
+        <div className="hidden sm:flex flex-col pr-2">
+          <span className="text-sm font-semibold text-[#333] leading-none">{name}</span>
+          <span className="text-[10px] font-bold text-primary uppercase mt-1 leading-none">
+            {user?.role || 'Admin'}
+          </span>
+        </div>
       </Link>
     </header>
   );

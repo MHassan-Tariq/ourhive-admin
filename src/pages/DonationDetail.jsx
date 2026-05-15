@@ -157,8 +157,13 @@ const DonationDetail = () => {
         finalAmount: Number(paymentData.amount)
       });
       
-      setDonation(response.data.data);
-      toast.success('Payment record saved successfully');
+      if (response && (response.data || response.success)) {
+        const updatedDonation = response.data || response;
+        setDonation(updatedDonation);
+        toast.success('Payment record saved successfully');
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err) {
       console.error(err);
       toast.error('Failed to save payment record');

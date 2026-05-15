@@ -20,12 +20,13 @@ import {
   X,
   Share2,
   Award,
-  Truck
+  Truck,
+  ShieldCheck
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose, user }) => {
   const isAdmin = user?.role === 'admin';
-  const isModerator = user?.role === 'moderator';
+  const isModerator = user?.role === 'moderator' || user?.isModerator === true;
 
   const menuGroups = [
     {
@@ -34,6 +35,7 @@ const Sidebar = ({ isOpen, onClose, user }) => {
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Participants', path: '/participants', icon: Users },
         { name: 'Volunteers', path: '/volunteers', icon: Heart },
+        ...(isAdmin ? [{ name: 'Moderators', path: '/moderators', icon: ShieldCheck }] : []),
         ...(!isModerator ? [
           { name: 'Sponsors', path: '/sponsors', icon: Handshake },
         ] : []),

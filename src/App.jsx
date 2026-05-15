@@ -25,6 +25,7 @@ import MonetaryDonationDetail from './pages/MonetaryDonationDetail';
 import PartnerPickups from './pages/PartnerPickups';
 import authService from './services/authService';
 import adminService from './services/adminService';
+import Moderators from './pages/Moderators';
 import { Toaster } from 'react-hot-toast';
 
 const ProtectedRoute = ({ children, allowedRoles = ['admin', 'moderator'] }) => {
@@ -36,7 +37,8 @@ const ProtectedRoute = ({ children, allowedRoles = ['admin', 'moderator'] }) => 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!allowedRoles.includes(user?.role)) {
+  const hasRole = allowedRoles.includes(user?.role) || (allowedRoles.includes('moderator') && user?.isModerator);
+  if (!hasRole) {
     return <Navigate to="/" replace />;
   }
 
@@ -55,7 +57,8 @@ const AppContent = () => {
     const isAuthenticated = authService.isAuthenticated();
     
     const allowedRoles = ['admin', 'moderator'];
-    if (isLoginPage && isAuthenticated && allowedRoles.includes(user?.role)) {
+    const hasRole = allowedRoles.includes(user?.role) || (allowedRoles.includes('moderator') && user?.isModerator);
+    if (isLoginPage && isAuthenticated && hasRole) {
       navigate('/');
     }
 
@@ -135,6 +138,10 @@ const AppContent = () => {
               
               <Route path="/social-links" element={
                 <ProtectedRoute allowedRoles={['admin']}><SocialLinks /></ProtectedRoute>
+              } />
+
+              <Route path="/moderators" element={
+                <ProtectedRoute allowedRoles={['admin']}><Moderators /></ProtectedRoute>
               } />
               
               <Route path="/partners/pickups" element={<PartnerPickups />} />

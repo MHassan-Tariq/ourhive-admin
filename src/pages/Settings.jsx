@@ -85,6 +85,7 @@ const Settings = () => {
 
         // Fetch Moderators Record
         const modRes = await adminService.getAllUsers({ role: 'moderator' });
+        console.log('DEBUG: Settings fetchData modRes:', modRes);
         setModerators(modRes?.data || []);
       } catch (err) {
         console.warn("Failed to fetch initial data:", err);
@@ -429,7 +430,7 @@ const Settings = () => {
                               </div>
                            </div>
                            <div className="flex gap-2">
-                              {u.role !== 'moderator' ? (
+                              {!u.isModerator ? (
                                 <button
                                   onClick={() => handleUpdateRole(u._id, 'moderator')}
                                   disabled={isUpdatingRole}

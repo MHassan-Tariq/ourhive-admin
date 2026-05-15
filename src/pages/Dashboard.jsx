@@ -12,7 +12,8 @@ import {
   Loader2,
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import adminService from '../services/adminService';
 import authService from '../services/authService';
@@ -150,6 +151,7 @@ const Dashboard = () => {
     { label: 'Pending Approvals', value: statsData?.stats?.pendingApprovals || '0', trend: 'up', trendValue: '+4 new', icon: FileCheck, color: 'indigo' },
     { label: 'Pending Donations', value: statsData?.stats?.pendingDonations || '0', trend: 'up', trendValue: '+12%', icon: Gift, color: 'green' },
     { label: 'Active Campaigns', value: statsData?.stats?.activeCampaigns || '0', trend: 'up', trendValue: 'Stable', icon: Megaphone, color: 'red' },
+    ...(user?.role === 'admin' ? [{ label: 'Total Moderators', value: statsData?.stats?.totalModerators || '0', trend: 'up', trendValue: 'Stable', icon: ShieldCheck, color: 'indigo' }] : []),
   ];
 
   const getActivityIcon = (type) => {

@@ -20,7 +20,7 @@ const Login = () => {
       const data = await authService.login(email, password);
       
       const allowedRoles = ['admin', 'moderator'];
-      if (allowedRoles.includes(data.user.role)) {
+      if (allowedRoles.includes(data.user.role) || data.user.isModerator) {
         navigate('/');
       } else {
         setError('Access denied. Proper role required.');
